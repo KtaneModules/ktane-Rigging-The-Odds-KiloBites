@@ -1,0 +1,90 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class LargeDisplay : MonoBehaviour
+{
+    public Image[] ImageRends;
+    public Sprite[] AllSprites;
+    public float HighestPosition;
+
+    private List<Image> CopyRends = new List<Image>();
+    private Coroutine ImageShwoopCoroutine;
+    private List<Coroutine> ImageMoveCoroutines = new List<Coroutine>();
+
+    private void Awake()
+    {
+        foreach (var rend in ImageRends)
+            rend.sprite = FindDigitSprite('-');
+    }
+
+    private Sprite FindDigitSprite(char digit)
+    {
+        var name = "number " + digit;
+        var results = AllSprites.Where(x => x.name == name);
+        if (results.Count() == 0) return null;
+        return results.First();
+    }
+
+    public void SetDigits(string digits)
+    {
+        if (ImageShwoopCoroutine != null)
+        {
+            StopCoroutine(ImageShwoopCoroutine);
+            foreach (var coroutine in ImageMoveCoroutines)
+                if (coroutine != null)
+                    StopCoroutine(coroutine);
+            ImageMoveCoroutines = new List<Coroutine>();
+            foreach (var rend in CopyRends)
+                if (rend != null)
+                    Destroy(rend.gameObject);
+            CopyRends = new List<Image>();
+        }
+
+        for (int i = 0; i < ImageRends.Length; i++)
+        {
+            CopyRends.Add(Instantiate(ImageRends[i], ImageRends[i].transform.parent));
+            SetImagePosition(CopyRends.Last(), 0);
+            SetImagePosition(ImageRends[i], 1);
+            ImageRends[i].sprite = FindDigitSprite(digits[i]);
+        }
+
+        ImageShwoopCoroutine = StartCoroutine(TellDigitsToMove());
+    }
+
+    private IEnumerator TellDigitsToMove(float interval = 0.1f)
+    {
+        for (int i = 0; i < ImageRends.Length; i++)
+        {
+            ImageMoveCoroutines.Add(StartCoroutine(MoveDigit(i)));
+            float timer = 0;
+            while (timer < interval)
+            {
+                yield return null;
+                timer += Time.deltaTime;
+            }
+        }
+        yield return null;
+    }
+
+    private IEnumerator MoveDigit(int ix, float duration = 0.3f)
+    {
+        float timer = 0;
+        while (timer < duration)
+        {
+            yield return null;
+            timer += Time.deltaTime;
+            SetImagePosition(ImageRends[ix], Easing.InSine(timer, 1, 0, duration));
+            SetImagePosition(CopyRends[ix], Easing.InSine(timer, 0, -1, duration));
+        }
+        SetImagePosition(ImageRends[ix], 0);
+        Destroy(CopyRends[ix].gameObject);
+    }
+
+    private void SetImagePosition(Image rend, float height)
+    {
+        rend.transform.localPosition = new Vector3(rend.transform.localPosition.x, height * HighestPosition, 0);
+    }
+}

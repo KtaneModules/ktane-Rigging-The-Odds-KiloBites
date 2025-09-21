@@ -12,6 +12,8 @@ public class RiggingTheOddsScript : MonoBehaviour {
 	public KMBombInfo Bomb;
 	public KMAudio Audio;
 	public KMBombModule Module;
+	public LargeDisplay LargeDisplay;
+	public BottomDisplay BottomDisplay;
 
 	static int moduleIdCounter = 1;
 	int moduleId;
@@ -29,6 +31,11 @@ public class RiggingTheOddsScript : MonoBehaviour {
 
 		//Button.OnInteract += delegate () { ButtonPress(); return false; };
 
+		Module.OnActivate += delegate { StartCoroutine(Tester()); };
+
+        BottomDisplay.SetTimeOfDraw(16, 45, false);
+        BottomDisplay.SetBuyIn(350);
+        BottomDisplay.SetJackpot(12345.45f);
     }
 
 	
@@ -41,6 +48,38 @@ public class RiggingTheOddsScript : MonoBehaviour {
 	void Update()
     {
 
+    }
+
+	private IEnumerator Tester()
+	{
+		yield return new WaitForSeconds(1f);
+		LargeDisplay.SetDigits("123");
+        yield return new WaitForSeconds(2f);
+        LargeDisplay.SetDigits("456");
+        yield return new WaitForSeconds(2f);
+        LargeDisplay.SetDigits("789");
+        yield return new WaitForSeconds(2f);
+        LargeDisplay.SetDigits("qqq");
+        yield return new WaitForSeconds(2f);
+        LargeDisplay.SetDigits("123");
+        yield return new WaitForSeconds(0.5f);
+        LargeDisplay.SetDigits("qqq");
+        yield return new WaitForSeconds(0.4f);
+        LargeDisplay.SetDigits("123");
+        yield return new WaitForSeconds(0.3f);
+        LargeDisplay.SetDigits("qqq");
+        yield return new WaitForSeconds(0.2f);
+        LargeDisplay.SetDigits("123");
+        yield return new WaitForSeconds(0.2f);
+        LargeDisplay.SetDigits("qqq");
+        yield return new WaitForSeconds(0.2f);
+        LargeDisplay.SetDigits("123");
+        yield return new WaitForSeconds(0.1f);
+        LargeDisplay.SetDigits("qqq");
+        yield return new WaitForSeconds(0.1f);
+        LargeDisplay.SetDigits("123");
+        yield return new WaitForSeconds(0.1f);
+        LargeDisplay.SetDigits("qqq");
     }
 
 	// Twitch Plays
