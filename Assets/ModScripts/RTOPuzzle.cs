@@ -13,23 +13,22 @@ public class RTOPuzzle
 
     private static readonly int?[] hexGridIxes =
     {
-        58,
-        40, 27,
-        2, 57, 59,
-        30, 43, 35, 22,
-        15, 9, 23, 41, 50,
-        21, 47, 33, 25,
-        49, 38, 16, 56, 46,
-        4, 5, 14, 31,
-        13, 52, null, 1, 53,
-        8, 3, 24, 55,
-        32, 10, 26, 54, 34,
-        51, 7, 11, 37,
-        45, 6, 29, 0, 19,
-        28, 48, 39, 42,
-        18, 17, 44,
+        28,
+        10, 27,
+        2, 27, 29,
+        0, 13, 5, 22,
+        15, 9, 23, 11, 20,
+        21, 17, 3, 25,
+        19, 8, 16, 26, 16,
+        4, 5, 14, 1,
+        13, 22, null, 1, 23,
+        8, 3, 24, 25,
+        2, 10, 26, 24, 4,
+        21, 7, 11, 7,
+        15, 6, 29, 0, 19,
+        28, 18, 17, 14,
         20, 12,
-        36
+        6
     };
 
     // I'll be honest, but I literally have no idea why the author of this manual wants to go north CCW instead of north CW, but it's fine. It's just gonna be weird as hell
@@ -184,5 +183,117 @@ public class RTOPuzzle
         };
 
         return Enumerable.Range(0, 3).Select(_ => Enumerable.Range(0, 3).Select(x => Enumerable.Range(0, arithmeticTables[x].Length).Select(y => new WinningNumberCell(arithmeticTables[x][y], arithmeticDigitTables[x][y], kcn[x]))).To2DArray()).ToArray();
+    }
+
+    private Station kcnStation;
+    private List<Station> usedStations = new List<Station>();
+
+    public void DetermineKeyStation()
+    {
+        var startingStation = _allStations.First(x => x.IsStartingStation);
+        var startingPositions = Enumerable.Range(0, 61).Where(x => hexGridIxes[x] != null).Where(x => hexGridIxes[x].Value == startingStation.StationID).ToArray();
+        var startingPosition = startingPositions[startingStation.CombinedDigits() <= 500 ? 1 : 0];
+        var currentPosition = startingPosition;
+
+        HexDirection? previousDirection = null;
+
+        usedStations.Add(startingStation);
+
+        for (int i = 0; i < 3; i++)
+        {
+            var hexDirections = DetermineHexDirections(i, usedStations);
+
+            if (hexDirections.Count == 0)
+            {
+                currentPosition = hexGrid[currentPosition][(int)HexDirection.X];
+
+                if (hexGridIxes[currentPosition] == null)
+                    currentPosition = hexGrid[currentPosition][(int)HexDirection.X];
+
+                if (currentPosition == startingPosition)
+                    currentPosition = hexGrid[currentPosition][(int)HexDirection.X];
+
+                if (i == 2)
+                {
+                    kcnStation = _allStations[currentPosition];
+                    break;
+                }
+
+                startingPosition = currentPosition;
+
+                continue;
+            }
+
+            var repeatDirections = hexDirections.SelectMany(x => Enumerable.Repeat(x, i + 1)).ToList();
+
+            foreach (var direction in repeatDirections)
+            {
+                currentPosition = hexGrid[currentPosition][(int)direction];
+
+                if (hexGridIxes[currentPosition] == null)
+                    currentPosition = hexGrid[currentPosition][(int)direction];
+
+                previousDirection = direction;
+            }
+
+            if (currentPosition == startingPosition)
+                currentPosition = hexGrid[currentPosition][(int)previousDirection.Value];
+
+            if (i == 2)
+            {
+                kcnStation = _allStations[currentPosition];
+                break;
+            }
+
+            usedStations.Add(_allStations[currentPosition]);
+
+            startingPosition = currentPosition;
+        }
+    }
+
+    private List<HexDirection> DetermineHexDirections(int stage, List<Station> usedStations)
+    {
+        bool[] conditions;
+
+        switch (stage)
+        {
+            case 0:
+                conditions = new[]
+                {
+                    usedStations[0].Digits[0] % 2 == 0,
+                    (usedStations[0].Digits[1] - usedStations[0].Digits[2]) < 5,
+                    usedStations[0].Digits[0] > usedStations[0].Digits[2],
+                    usedStations[0].CombinedDigits() > 499,
+                    usedStations[0].Digits[1] + usedStations[0].Digits[0] > usedStations[0].Digits[2],
+                    usedStations[0].CombinedDigits() % 2 == 1
+                };
+                break;
+            case 1:
+                conditions = new[]
+                {
+                    usedStations[0].Digits.Any(x => usedStations[1].Digits[0] == x),
+                    usedStations[1].CombinedDigits() > usedStations[0].CombinedDigits(),
+                    usedStations[1].Digits[1] > usedStations[0].Digits[1],
+                    usedStations[1].Digits[2] + usedStations[1].Digits[0] > 9,
+                    (usedStations[1].Digits[0] - usedStations[1].Digits[1]) < (usedStations[0].Digits[0] - usedStations[1].Digits[1]),
+                    usedStations[1].Digits[2] <= usedStations[0].Digits[2]
+                };
+                break;
+            case 2:
+                conditions = new[]
+                {
+                    (usedStations[0].Digits[2] -  usedStations[1].Digits[2]) > usedStations[2].Digits[2],
+                    usedStations[2].Digits[2] - usedStations[2].Digits[0] < 0,
+                    usedStations[2].Digits[1] % 2 == usedStations[1].Digits[1] % 2,
+                    usedStations[2].Digits[1] + usedStations[2].Digits[2] > usedStations[1].Digits[1] + usedStations[1].Digits[2],
+                    usedStations[2].CombinedDigits() > usedStations[1].CombinedDigits(),
+                    usedStations.Take(2).All(x => usedStations[2].Digits[0] >= x.Digits[0])
+                };
+                break;
+            default:
+                throw new ArgumentOutOfRangeException($"Stage {stage} is not an valid index. Make sure it is in the range of 0-2 inclusive.");
+        }
+
+        return Enumerable.Range(0, 6).Where(x => conditions[x]).Select(x => (HexDirection)x).ToList();
     }
 }

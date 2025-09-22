@@ -5,7 +5,7 @@ public class WinningNumberCell
     public Arithmetic Arithmetic { get; private set; }
     public int GetResultedValue { get; private set; }
 
-    private int _arithmeticValue;
+    private readonly int _arithmeticValue;
 
     public WinningNumberCell(Arithmetic arithmetic, int arithmeticValue, int currentValue)
     {

@@ -24,7 +24,7 @@ public class BottomDisplay : MonoBehaviour
 
     public void SetBuyIn(int buyIn)
     {
-        TextAPartB = BuyInPrefix + buyIn;
+        TextAPartB = BuyInPrefix + (buyIn == 100 ? "MAX" : buyIn.ToString());
         AssignA();
     }
 
@@ -36,6 +36,6 @@ public class BottomDisplay : MonoBehaviour
 
     public void SetJackpot(float jackpot)
     {
-        TextB.text = TextBGlow.text = "\n" + JackpotPrefix + jackpot.ToString("N");
+        TextB.text = TextBGlow.text = "\n" + JackpotPrefix + jackpot.ToString("N1");
     }
 }

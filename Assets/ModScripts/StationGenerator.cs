@@ -9,7 +9,7 @@ public static class StationGenerator
 
         var usedNumbers = new List<int>();
 
-        for (int i = 0; i < 60; i++)
+        for (int i = 0; i < 30; i++)
         {
             var uniqueNumber = Enumerable.Range(0, 1000).Where(x => !usedNumbers.Contains(x)).PickRandom();
 

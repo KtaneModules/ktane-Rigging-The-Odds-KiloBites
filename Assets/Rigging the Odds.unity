@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657826, g: 0.49641263, b: 0.57481676, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -113,12 +113,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!114 &5386480 stripped
-MonoBehaviour:
-  m_PrefabParentObject: {fileID: 114729948780040098, guid: 176e1a318ef9574419f7a0fcce8ec418,
-    type: 2}
-  m_PrefabInternal: {fileID: 1598857695}
-  m_Script: {fileID: 708705254, guid: f70555f144d8491a825f0804e09c671c, type: 3}
 --- !u!1 &130379922
 GameObject:
   m_ObjectHideFlags: 0
@@ -242,12 +236,6 @@ Prefab:
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 8814ea52310d2614a9feda02ec355ae4, type: 2}
   m_IsPrefabParent: 0
---- !u!114 &218025705 stripped
-MonoBehaviour:
-  m_PrefabParentObject: {fileID: 114736775800995378, guid: 176e1a318ef9574419f7a0fcce8ec418,
-    type: 2}
-  m_PrefabInternal: {fileID: 1598857695}
-  m_Script: {fileID: 708705254, guid: f70555f144d8491a825f0804e09c671c, type: 3}
 --- !u!1 &580198653
 GameObject:
   m_ObjectHideFlags: 0
@@ -313,30 +301,13 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
---- !u!114 &954776685 stripped
-MonoBehaviour:
-  m_PrefabParentObject: {fileID: 114818207038996914, guid: 176e1a318ef9574419f7a0fcce8ec418,
-    type: 2}
-  m_PrefabInternal: {fileID: 1598857695}
-  m_Script: {fileID: 708705254, guid: f70555f144d8491a825f0804e09c671c, type: 3}
---- !u!114 &1567105797 stripped
-MonoBehaviour:
-  m_PrefabParentObject: {fileID: 114893305842949888, guid: 176e1a318ef9574419f7a0fcce8ec418,
-    type: 2}
-  m_PrefabInternal: {fileID: 1598857695}
-  m_Script: {fileID: 708705254, guid: f70555f144d8491a825f0804e09c671c, type: 3}
---- !u!1001 &1598857695
+--- !u!1001 &1700523585
 Prefab:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 114238178129097884, guid: 176e1a318ef9574419f7a0fcce8ec418,
-        type: 2}
-      propertyPath: AllSprites.Array.size
-      value: 12
-      objectReference: {fileID: 0}
     - target: {fileID: 4938217276708920, guid: 176e1a318ef9574419f7a0fcce8ec418, type: 2}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -369,45 +340,17 @@ Prefab:
       propertyPath: m_RootOrder
       value: 3
       objectReference: {fileID: 0}
-    - target: {fileID: 114238178129097884, guid: 176e1a318ef9574419f7a0fcce8ec418,
-        type: 2}
-      propertyPath: AllSprites.Array.data[11]
-      value: 
-      objectReference: {fileID: 21300022, guid: 38ff91a96bf37dd43b7b40f2bca1b223,
-        type: 3}
-    - target: {fileID: 114015421021111658, guid: 176e1a318ef9574419f7a0fcce8ec418,
-        type: 2}
-      propertyPath: m_Text
-      value: '..................................................'
-      objectReference: {fileID: 0}
     - target: {fileID: 114121205099572972, guid: 176e1a318ef9574419f7a0fcce8ec418,
         type: 2}
-      propertyPath: BottomDisplay
+      propertyPath: SmallDisplay
       value: 
-      objectReference: {fileID: 2021033069}
+      objectReference: {fileID: 1820584921}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 176e1a318ef9574419f7a0fcce8ec418, type: 2}
   m_IsPrefabParent: 0
---- !u!1 &2021033064 stripped
-GameObject:
-  m_PrefabParentObject: {fileID: 1937832683481002, guid: 176e1a318ef9574419f7a0fcce8ec418,
-    type: 2}
-  m_PrefabInternal: {fileID: 1598857695}
---- !u!114 &2021033069
+--- !u!114 &1820584921 stripped
 MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 2021033064}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 298fc52c1ac41ed4a8564c09f799ec2a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  TextA: {fileID: 954776685}
-  TextAGlow: {fileID: 1567105797}
-  TextB: {fileID: 218025705}
-  TextBGlow: {fileID: 5386480}
-  TimeOfDrawPrefix: 'Time of Draw: '
-  BuyInPrefix: 'Buy-in: '
-  JackpotPrefix: 'JP: '
+  m_PrefabParentObject: {fileID: 114941137105734806, guid: 176e1a318ef9574419f7a0fcce8ec418,
+    type: 2}
+  m_PrefabInternal: {fileID: 1700523585}
+  m_Script: {fileID: 11500000, guid: 92626bfad87e98a4b9fefe0b6fe21a93, type: 3}

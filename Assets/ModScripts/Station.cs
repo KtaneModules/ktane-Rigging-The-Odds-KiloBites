@@ -11,5 +11,5 @@
         Digits = digits;
     }
 
-    public int GetThreeDigitNumber() => int.Parse(Digits.Join(""));
+    public int CombinedDigits() => int.Parse(Digits.Join(""));
 }
