@@ -4,6 +4,45 @@ using System.Linq;
 
 public class RTOPuzzle
 {
+
+    private struct DigitFinder
+    {
+        public int[] DigitsToCheck { get; private set; }
+        public int PrimaryIndex { get; private set; }
+        public int? AlternativeIndex { get; private set; }
+
+        public int[] DigitsToCheckIxes { get; private set; }
+
+        public DigitFinder(int[] digitsToCheck, int primaryIndex, int? alternativeIndex, int[] digitsToCheckIxes)
+        {
+            DigitsToCheck = digitsToCheck;
+            PrimaryIndex = primaryIndex;
+            AlternativeIndex = alternativeIndex;
+            DigitsToCheckIxes = digitsToCheckIxes;
+        }
+    }
+
+    private DigitFinder[] SetupPriority(int[] winningNumbers)
+    {
+        var ixBools = new[]
+        {
+            "xx.",
+            "x.x",
+            ".xx",
+            "x..",
+            ".x.",
+            "..x"
+        }.Select(x => x.Select(y => y == 'x').ToArray()).ToArray();
+
+        var primaryIxes = new[] { 2, 1, 1, 1, 0, 0 };
+        var alternativeIxes = new List<int?>();
+
+        alternativeIxes.AddRange(Enumerable.Repeat((int?)null, 3));
+        alternativeIxes.AddRange(new int?[] { 2, 2, 1 });
+
+        return Enumerable.Range(0, 6).Select(x => new DigitFinder(Enumerable.Range(0, 3).Where(y => ixBools[x][y]).Select(y => winningNumbers[y]).ToArray(), primaryIxes[x], alternativeIxes[x], Enumerable.Range(0, 3).Where(y => ixBools[x][y]).ToArray())).ToArray();
+    }
+
     private List<Station> _allStations;
 
     public RTOPuzzle(List<Station> allStations)
@@ -295,5 +334,99 @@ public class RTOPuzzle
         }
 
         return Enumerable.Range(0, 6).Where(x => conditions[x]).Select(x => (HexDirection)x).ToList();
+    }
+
+    private bool CheckRange(float jp, float start, float end) => jp >= start && jp <= end;
+
+    public void ProvideAnswer(BottomDisplayInfo info, out IEnumerable<Station> foundStations)
+    {
+        var minuteRef = Enumerable.Range(0, 12).Select(x => x * 5).ToArray();
+
+        var jp = info.JackpotValue;
+
+        var checkJackpotRange = new[]
+        {
+            CheckRange(jp, 0, 999.9f),
+            CheckRange(jp, 1000, 4999.9f),
+            CheckRange(jp, 5000, 99999.9f),
+            CheckRange(jp, 10000, 24999.9f),
+            CheckRange(jp, 25000, 49999.9f),
+            jp >= 50000
+        };
+
+        var buyIn = info.BuyInAmount + 1;
+
+        var buyInRange = new[]
+        {
+            10,
+            20,
+            30,
+            40,
+            50,
+            60,
+            70,
+            80,
+            90,
+            100
+        }.Select((x, i) => i == 9 ? buyIn <= x : buyIn < x).ToArray();
+
+        var minuteIx = minuteRef.First(x => info.TimeOfDraw.Minutes == x);
+        var jpRangeIx = Enumerable.Range(0, 6).First(x => checkJackpotRange[x]);
+        var buyInIx = Enumerable.Range(0, 10).First(x => buyInRange[x]);
+
+        var tables = WinningTables(usedStations.Select(x => x.Digits.ToArray()).ToList(), kcnStation.Digits.ToArray());
+
+        var answerOutput = new int[3];
+
+        for (int i = 0; i < 3; i++)
+            answerOutput[i] = tables[i][(i == 0 ? buyInIx : jpRangeIx), (i % 2 == 0 ? minuteIx : buyInIx)].GetResultedValue;
+
+        foundStations = FindPrioritizedStations(answerOutput);
+    }
+
+    private IEnumerable<Station> FindPrioritizedStations(int[] winningNumbers)
+    {
+        if (_allStations.Any(x => x.Digits.SequenceEqual(winningNumbers)))
+        {
+            yield return _allStations.First(x => x.Digits.SequenceEqual(winningNumbers));
+            yield break;
+        }
+
+        var findDigits = SetupPriority(winningNumbers);
+
+        if (findDigits.All(x => !(_allStations.Count(y => x.DigitsToCheckIxes.Select(z => y.Digits[z]).SequenceEqual(x.DigitsToCheck)) >= 1)))
+        {
+            var getSmallDifferences = _allStations.Select(x => Math.Abs(int.Parse(winningNumbers.Join("")) - x.CombinedDigits())).ToArray();
+            var findMinimumValue = getSmallDifferences.Min();
+
+            var getSmallestStationsAvailable = _allStations.Where(x => Math.Abs(int.Parse(winningNumbers.Join("")) - x.CombinedDigits()) == findMinimumValue).ToList();
+
+            foreach (var station in getSmallestStationsAvailable)
+                yield return station;
+
+            yield break;
+        }
+
+        var findPrioritized = findDigits.First(x => _allStations.Count(y => x.DigitsToCheckIxes.Select(z => y.Digits[z]).SequenceEqual(x.DigitsToCheck)) >= 1);
+
+        var getAllPossibleStations = _allStations.Where(x => findPrioritized.DigitsToCheckIxes.Select(y => x.Digits[y]).SequenceEqual(findPrioritized.DigitsToCheck)).ToList();
+
+        var getStationResults = getAllPossibleStations.Select(x => Math.Abs(winningNumbers[findPrioritized.PrimaryIndex] - x.Digits[findPrioritized.PrimaryIndex])).ToList();
+        var findMinimumOfStation = getStationResults.Min();
+
+        List<Station> finalStations;
+
+        if (getStationResults.Count(x => x == findMinimumOfStation) > 1 && findPrioritized.AlternativeIndex != null)
+        {
+            getStationResults = getAllPossibleStations.Select(x => Math.Abs(winningNumbers[findPrioritized.AlternativeIndex.Value] - x.Digits[findPrioritized.AlternativeIndex.Value])).ToList();
+            findMinimumOfStation = getStationResults.Min();
+
+            finalStations = getAllPossibleStations.Where(x => Math.Abs(winningNumbers[findPrioritized.AlternativeIndex.Value] - x.Digits[findPrioritized.AlternativeIndex.Value]) == findMinimumOfStation).ToList();
+        }
+        else
+            finalStations = getAllPossibleStations.Where(x => Math.Abs(winningNumbers[findPrioritized.PrimaryIndex] - x.Digits[findPrioritized.PrimaryIndex]) == findMinimumOfStation).ToList();
+
+        foreach (var station in finalStations)
+            yield return station;
     }
 }

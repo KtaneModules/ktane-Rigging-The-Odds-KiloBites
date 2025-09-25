@@ -10,5 +10,5 @@ public class SmallDisplaySub : MonoBehaviour
     public Text TextOver;
     public Text TextShadow;
 
-    public void SetCharacter(int? number = null) => TextOver.text = TextShadow.text = number.ToString() ?? "?";
+    public void SetCharacter(int? number = null) => TextOver.text = TextShadow.text = number == null ? "?" : number.Value.ToString();
 }

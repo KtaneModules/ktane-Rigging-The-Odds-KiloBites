@@ -48,6 +48,8 @@ public class SmallDisplay : MonoBehaviour
             SmallSubDisplays[i].SetCharacter(station.Digits[i]);
             module.PlayBlip();
         }
+
+        CommitCoroutine = null;
     }
 
     private IEnumerator CycleRandomDigits(SmallDisplaySub subDisplay)

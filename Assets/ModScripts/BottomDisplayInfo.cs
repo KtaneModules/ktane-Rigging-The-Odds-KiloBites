@@ -7,7 +7,7 @@ public class BottomDisplayInfo
 {
     public int BuyInAmount { get; set; }
     public float JackpotValue { get; set; }
-
+    public TimeDraw TimeOfDraw { get; set; }
 
     public struct TimeDraw
     {
@@ -32,10 +32,32 @@ public class BottomDisplayInfo
         return Enumerable.Range(0, 9).SelectMany(x => Enumerable.Range(0, 12).Select(y => new TimeDraw(hours[x], minutes[y], isPMOrNot[x]))).ToArray();
     }
 
+    private static readonly IEnumerable<int>[] startingJackpotValues =
+    {
+        Enumerable.Range(0, 1000),
+        Enumerable.Range(1000, 5000),
+        Enumerable.Range(5000, 10000),
+        Enumerable.Range(10000, 25000),
+        Enumerable.Range(25000, 50000),
+        new[] { 50000 }
+    };
+
     public BottomDisplayInfo()
     {
-        // Todo: Set up values based off of the percentage chance.
+        BuyInAmount = Range(0, 8) == 0 ? 99 : Range(0, 99);
+        JackpotValue = startingJackpotValues.ToList().Shuffle().PickRandom().PickRandom(); // I know this is weird as hell, but I don't care. If it ain't broke, don't fix it.
+        TimeOfDraw = GetDesiredTimes().PickRandom();
+    }
 
+    public void PerformReset(bool moreThanOneMatch)
+    {
+        BuyInAmount = Range(0, 8) == 0 ? 99 : Range(0, 99);
 
+        TimeOfDraw = GetDesiredTimes().Where(x => (TimeOfDraw.Hour + 1) % 12 + 1 == x.Hour).PickRandom();
+
+        if (moreThanOneMatch)
+            JackpotValue = startingJackpotValues[0].Contains((int)JackpotValue) ? 0 : startingJackpotValues[1].Contains((int)JackpotValue) ? 1000 :
+                startingJackpotValues[2].Contains((int)JackpotValue) ? 5000 : startingJackpotValues[3].Contains((int)JackpotValue) ? 10000 :
+                startingJackpotValues[4].Contains((int)JackpotValue) ? 25000 : 50000;
     }
 }
