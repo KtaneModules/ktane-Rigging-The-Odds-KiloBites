@@ -3,8 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using KModkit;
-using static UnityEngine.Random;
 using static UnityEngine.Debug;
 
 public class RiggingTheOddsScript : MonoBehaviour {
@@ -29,8 +27,6 @@ public class RiggingTheOddsScript : MonoBehaviour {
 
 	private List<Station> stations;
 	private BottomDisplayInfo bottomInfo;
-
-	private List<Station> answeredStations;
 
 	private RTOPuzzle puzzle;
 
@@ -119,22 +115,113 @@ public class RiggingTheOddsScript : MonoBehaviour {
 		increaseJP = StartCoroutine(IncreaseJackpot());
 	}
 
-	public void PlayBlip()
-	{
-
-	}
+	public void PlayBlip() => Audio.PlaySoundAtTransform("Blip", transform);
 
 	IEnumerator Commit()
 	{
 		SmallDisplay.StartCommit(stations[currentStationPosition], this);
+		BottomDisplay.ShowGoodLuck();
+		LargeDisplay.SetDigits("---");
 
 		yield return new WaitUntil(() => SmallDisplay.CommitCoroutine == null);
 
-		IEnumerable<Station> answerStations;
+		List<Station> answerStations;
 
 		puzzle.ProvideAnswer(bottomInfo, out answerStations);
 
-		answeredStations = answerStations.ToList();
+		if (answerStations.Count == 1 && stations.Count(x => x.StationID == answerStations.First().StationID) == 1)
+		{
+			if (answerStations.Single().StationID == stations[currentStationPosition].StationID)
+			{
+				Audio.PlaySoundAtTransform("Solve", transform);
+				BottomDisplay.Set2Text("Congratulations!", "You won the JACKPOT!");
+				moduleSolved = true;
+				Module.HandlePass();
+				BottomDisplay.StartFlash();
+				yield return new WaitForSeconds(5);
+				BottomDisplay.StopFlash();
+			}
+			else
+			{
+				Audio.PlaySoundAtTransform("Strike", transform);
+				BottomDisplay.Set2Text("You Lose...", $"Station {(answerStations.First().StationID + 1):00} wins JACKPOT");
+				Module.HandleStrike();
+				yield return new WaitForSeconds(3);
+				Reset(false);
+				currentlyCommitting = null;
+			}
+		}
+		else
+		{
+			BottomDisplay.Set2Text("No exact matches.");
+			yield return new WaitForSeconds(1.5f);
+			BottomDisplay.Set2Text("No exact matches.", "Closest Station:");
+			yield return new WaitForSeconds(1.5f);
+
+			Coroutine useIfMoreThanThreeStations = null;
+
+			if (answerStations.Any(x => x.StationID == stations[currentStationPosition].StationID))
+			{
+				Audio.PlaySoundAtTransform("Solve", transform);
+
+				if (answerStations.Count > 3)
+					useIfMoreThanThreeStations = StartCoroutine(ShowMoreThan3Stations(answerStations.OrderBy(x => x.StationID).Select((x, i) => new { Index = i, Value = x }).GroupBy(x => x.Index / 3).Select(x => x.Select(v => v.Value).ToArray()).ToList(), true));
+				else
+					BottomDisplay.Set2Text("You Win!", $"Closest Station: {answerStations.Select(x => (x.StationID + 1).ToString("00")).Join(",")}");
+
+				moduleSolved = true;
+				Module.HandlePass();
+			}
+			else
+			{
+				Audio.PlaySoundAtTransform("Strike", transform);
+
+                if (answerStations.Count > 3)
+                    useIfMoreThanThreeStations = StartCoroutine(ShowMoreThan3Stations(answerStations.OrderBy(x => x.StationID).Select((x, i) => new { Index = i, Value = x }).GroupBy(x => x.Index / 3).Select(x => x.Select(v => v.Value).ToArray()).ToList(), false));
+                else
+                    BottomDisplay.Set2Text("You Lose...", $"Closest Station: {answerStations.Select(x => (x.StationID + 1).ToString("00")).Join(",")}");
+
+				Module.HandleStrike();
+
+				yield return new WaitForSeconds(3);
+
+				if (useIfMoreThanThreeStations != null)
+					StopCoroutine(useIfMoreThanThreeStations);
+
+				Reset(answerStations.Count() > 1);
+				currentlyCommitting = null;
+            }
+		}
+	}
+
+	IEnumerator ShowMoreThan3Stations(List<Station[]> stationGroups, bool hasWon)
+	{
+		while (true)
+			foreach (var stationGroup in stationGroups)
+			{
+                BottomDisplay.Set2Text(hasWon ? "You Win!" : "You Lose...", $"Closest Station: {stationGroup.Select(x => (x.StationID + 1).ToString("00")).Join(",")}");
+				yield return new WaitForSeconds(0.5f);
+            }			
+	}
+
+	void Reset(bool moreThanOneInstance)
+	{
+		bottomInfo.PerformReset(moreThanOneInstance);
+
+		stations.ForEach(x => x.IsAlreadySeen = false);
+		stations.First(x => x.IsStartingStation).IsStartingStation = false;
+		stations[currentStationPosition].IsStartingStation = true;
+		puzzle = new RTOPuzzle(stations);
+		puzzle.DetermineKeyStation();
+
+		TopDisplay.SetStation(stations[currentStationPosition]);
+		LargeDisplay.SetDigits(stations[currentStationPosition].Digits.Join(""));
+		BottomDisplay.SetBuyIn(bottomInfo.BuyInAmount);
+		BottomDisplay.SetJackpot(bottomInfo.JackpotValue);
+		BottomDisplay.SetTimeOfDraw(bottomInfo.TimeOfDraw.Hour, bottomInfo.TimeOfDraw.Minutes, bottomInfo.TimeOfDraw.IsPM);
+		SmallDisplay.ResetAllDisplays();
+
+		increaseJP = StartCoroutine(IncreaseJackpot());
 	}
 	
 	IEnumerator IncreaseJackpot()

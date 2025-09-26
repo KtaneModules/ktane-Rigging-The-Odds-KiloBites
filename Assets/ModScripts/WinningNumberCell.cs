@@ -28,9 +28,7 @@ public class WinningNumberCell
                 
         }
 
-        modifiedValue %= 10;
-
-        GetResultedValue = modifiedValue;
+        GetResultedValue = (modifiedValue + 10) % 10;
     }
 
     public override string ToString() => $"{"+-±"[(int)Arithmetic]}{_arithmeticValue}";

@@ -65,7 +65,8 @@ public class RTOPuzzle
         2, 10, 26, 24, 4,
         21, 7, 11, 7,
         15, 6, 29, 0, 19,
-        28, 18, 17, 14,
+        28, 18, 9, 12,
+        18, 17, 14,
         20, 12,
         6
     };
@@ -159,6 +160,8 @@ public class RTOPuzzle
 
     private static WinningNumberCell[][,] WinningTables(List<int[]> usedStationNumbers, int[] kcn)
     {
+        var result = new WinningNumberCell[3][,];
+
         var arithmeticTables = new[]
         {
             new[]
@@ -221,8 +224,19 @@ public class RTOPuzzle
             }
         };
 
-        return Enumerable.Range(0, 3).Select(_ => Enumerable.Range(0, 3).Select(x => Enumerable.Range(0, arithmeticTables[x].Length).Select(y => new WinningNumberCell(arithmeticTables[x][y], arithmeticDigitTables[x][y], kcn[x]))).To2DArray()).ToArray();
+        for (int i = 0; i < 3; i++)
+        {
+            result[i] = new WinningNumberCell[6, (i % 2 == 0 ? 12 : 10)];
+
+            for (int j = 0; j < 6; j++)
+                for (int k = 0; k < (i % 2 == 0 ? 12 : 10); k++)
+                    result[i][j, k] = new WinningNumberCell(arithmeticTables[i][j * (i % 2 == 0 ? 12 : 10) + k], arithmeticDigitTables[i][j * (i % 2 == 0 ? 12 : 10) + k], kcn[i]);
+        }
+
+        return result;
+
     }
+
 
     private Station kcnStation;
     private List<Station> usedStations = new List<Station>();
@@ -254,7 +268,7 @@ public class RTOPuzzle
 
                 if (i == 2)
                 {
-                    kcnStation = _allStations[currentPosition];
+                    kcnStation = _allStations[hexGridIxes[currentPosition].Value];
                     break;
                 }
 
@@ -280,11 +294,11 @@ public class RTOPuzzle
 
             if (i == 2)
             {
-                kcnStation = _allStations[currentPosition];
+                kcnStation = _allStations[hexGridIxes[currentPosition].Value];
                 break;
             }
 
-            usedStations.Add(_allStations[currentPosition]);
+            usedStations.Add(_allStations[hexGridIxes[currentPosition].Value]);
 
             startingPosition = currentPosition;
         }
@@ -338,7 +352,7 @@ public class RTOPuzzle
 
     private bool CheckRange(float jp, float start, float end) => jp >= start && jp <= end;
 
-    public void ProvideAnswer(BottomDisplayInfo info, out IEnumerable<Station> foundStations)
+    public void ProvideAnswer(BottomDisplayInfo info, out List<Station> foundStations)
     {
         var minuteRef = Enumerable.Range(0, 12).Select(x => x * 5).ToArray();
 
@@ -353,6 +367,16 @@ public class RTOPuzzle
             CheckRange(jp, 25000, 49999.9f),
             jp >= 50000
         };
+
+        var buyInAmountRange = new[]
+        {
+            Enumerable.Range(0, 9),
+            Enumerable.Range(10, 25),
+            Enumerable.Range(25, 49),
+            Enumerable.Range(50, 74),
+            Enumerable.Range(75, 99),
+            new[] { 99 }
+        }.Select(x => x.Contains(info.BuyInAmount)).ToArray();
 
         var buyIn = info.BuyInAmount + 1;
 
@@ -370,41 +394,37 @@ public class RTOPuzzle
             100
         }.Select((x, i) => i == 9 ? buyIn <= x : buyIn < x).ToArray();
 
-        var minuteIx = minuteRef.First(x => info.TimeOfDraw.Minutes == x);
+        var minuteIx = Enumerable.Range(0, 12).First(x => minuteRef[x] == info.TimeOfDraw.Minutes);
         var jpRangeIx = Enumerable.Range(0, 6).First(x => checkJackpotRange[x]);
         var buyInIx = Enumerable.Range(0, 10).First(x => buyInRange[x]);
+        var firstDigitBuyInIx = Enumerable.Range(0, 6).First(x => buyInAmountRange[x]);
 
         var tables = WinningTables(usedStations.Select(x => x.Digits.ToArray()).ToList(), kcnStation.Digits.ToArray());
 
         var answerOutput = new int[3];
 
         for (int i = 0; i < 3; i++)
-            answerOutput[i] = tables[i][(i == 0 ? buyInIx : jpRangeIx), (i % 2 == 0 ? minuteIx : buyInIx)].GetResultedValue;
+            answerOutput[i] = tables[i][(i == 0 ? firstDigitBuyInIx : jpRangeIx), (i % 2 == 0 ? minuteIx : buyInIx)].GetResultedValue;
+            
 
         foundStations = FindPrioritizedStations(answerOutput);
     }
 
-    private IEnumerable<Station> FindPrioritizedStations(int[] winningNumbers)
+    private List<Station> FindPrioritizedStations(int[] winningNumbers)
     {
         if (_allStations.Any(x => x.Digits.SequenceEqual(winningNumbers)))
-        {
-            yield return _allStations.First(x => x.Digits.SequenceEqual(winningNumbers));
-            yield break;
-        }
+            return new List<Station> { _allStations.First(x => x.Digits.SequenceEqual(winningNumbers)) };
+
+        List<Station> finalStations;
 
         var findDigits = SetupPriority(winningNumbers);
 
-        if (findDigits.All(x => !(_allStations.Count(y => x.DigitsToCheckIxes.Select(z => y.Digits[z]).SequenceEqual(x.DigitsToCheck)) >= 1)))
+        if (!findDigits.All(x => _allStations.Count(y => x.DigitsToCheckIxes.Select(z => y.Digits[z]).SequenceEqual(x.DigitsToCheck)) >= 1))
         {
             var getSmallDifferences = _allStations.Select(x => Math.Abs(int.Parse(winningNumbers.Join("")) - x.CombinedDigits())).ToArray();
-            var findMinimumValue = getSmallDifferences.Min();
+            var findMinValue = getSmallDifferences.Min();
 
-            var getSmallestStationsAvailable = _allStations.Where(x => Math.Abs(int.Parse(winningNumbers.Join("")) - x.CombinedDigits()) == findMinimumValue).ToList();
-
-            foreach (var station in getSmallestStationsAvailable)
-                yield return station;
-
-            yield break;
+            return _allStations.Where(x => Math.Abs(int.Parse(winningNumbers.Join("")) - x.CombinedDigits()) == findMinValue).ToList();
         }
 
         var findPrioritized = findDigits.First(x => _allStations.Count(y => x.DigitsToCheckIxes.Select(z => y.Digits[z]).SequenceEqual(x.DigitsToCheck)) >= 1);
@@ -413,8 +433,6 @@ public class RTOPuzzle
 
         var getStationResults = getAllPossibleStations.Select(x => Math.Abs(winningNumbers[findPrioritized.PrimaryIndex] - x.Digits[findPrioritized.PrimaryIndex])).ToList();
         var findMinimumOfStation = getStationResults.Min();
-
-        List<Station> finalStations;
 
         if (getStationResults.Count(x => x == findMinimumOfStation) > 1 && findPrioritized.AlternativeIndex != null)
         {
@@ -426,7 +444,6 @@ public class RTOPuzzle
         else
             finalStations = getAllPossibleStations.Where(x => Math.Abs(winningNumbers[findPrioritized.PrimaryIndex] - x.Digits[findPrioritized.PrimaryIndex]) == findMinimumOfStation).ToList();
 
-        foreach (var station in finalStations)
-            yield return station;
+        return finalStations;
     }
 }

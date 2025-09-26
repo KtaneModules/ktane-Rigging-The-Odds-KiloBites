@@ -39,7 +39,7 @@ public class BottomDisplayInfo
         Enumerable.Range(5000, 10000),
         Enumerable.Range(10000, 25000),
         Enumerable.Range(25000, 50000),
-        new[] { 50000 }
+        Enumerable.Range(50000, 100000)
     };
 
     public BottomDisplayInfo()
@@ -53,7 +53,16 @@ public class BottomDisplayInfo
     {
         BuyInAmount = Range(0, 8) == 0 ? 99 : Range(0, 99);
 
-        TimeOfDraw = GetDesiredTimes().Where(x => (TimeOfDraw.Hour + 1) % 12 + 1 == x.Hour).PickRandom();
+        var hour = (TimeOfDraw.Hour + 1) % 12;
+        var isPm = TimeOfDraw.IsPM;
+
+        if (hour == 0)
+        {
+            hour = 12;
+            isPm = !isPm;
+        }
+
+        TimeOfDraw = new TimeDraw(hour, Enumerable.Range(0, 12).Select(x => x * 5).PickRandom(), isPm);
 
         if (moreThanOneMatch)
             JackpotValue = startingJackpotValues[0].Contains((int)JackpotValue) ? 0 : startingJackpotValues[1].Contains((int)JackpotValue) ? 1000 :
