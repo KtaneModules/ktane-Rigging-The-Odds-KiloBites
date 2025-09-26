@@ -54,9 +54,13 @@ public class SmallDisplay : MonoBehaviour
 
     private IEnumerator CycleRandomDigits(SmallDisplaySub subDisplay)
     {
+        var previous = 0;
+        var current = 0;
         while (true)
         {
-            subDisplay.SetCharacter(Range(0, 10));
+            current = Enumerable.Range(0, 10).Where(x => x != previous).PickRandom();
+            previous = current;
+            subDisplay.SetCharacter(current);
             yield return new WaitForSeconds(0.05f);
         }
     }
