@@ -15,10 +15,13 @@ public class RiggingTheOddsScript : MonoBehaviour {
 	public SmallDisplay SmallDisplay;
 	public BottomDisplay BottomDisplay;
 	public KMSelectable[] Buttons;
+	public float ButtonDepression;
 
 	private Coroutine increaseJP, currentlyCommitting;
+	private Coroutine[] ButtonAnimCoroutines;
 
 	static int moduleIdCounter = 1;
+	private float ButtonInitY;
 	int moduleId;
 	private bool moduleSolved;
 	private bool isActivated;
@@ -32,13 +35,19 @@ public class RiggingTheOddsScript : MonoBehaviour {
 
 	void Awake()
     {
-
 		moduleId = moduleIdCounter++;
 
 		Module.OnActivate += Activate;
 
+		ButtonAnimCoroutines = new Coroutine[Buttons.Length];
+		ButtonInitY = Buttons[0].transform.localPosition.y;
+
+        int i = 0;
 		foreach (KMSelectable button in Buttons)
-			button.OnInteract += delegate () { ButtonPress(button); return false; };
+		{
+			int x = i++;
+			button.OnInteract += delegate () { ButtonPress(button, x); return false; };
+		}
     }
 
 	
@@ -59,12 +68,16 @@ public class RiggingTheOddsScript : MonoBehaviour {
 		puzzle.DetermineKeyStation();
     }
 
-	void ButtonPress(KMSelectable button)
+	void ButtonPress(KMSelectable button, int pos)
 	{
-		button.AddInteractionPunch(0.4f);
+		button.AddInteractionPunch();
 		Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, button.transform);
+		if (ButtonAnimCoroutines[pos] != null)
+			StopCoroutine(ButtonAnimCoroutines[pos]);
+		ButtonAnimCoroutines[pos] = StartCoroutine(ButtonAnim(button));
 
-		if (moduleSolved || !isActivated || currentlyCommitting != null)
+
+        if (moduleSolved || !isActivated || currentlyCommitting != null)
 			return;
 
 		switch (Array.IndexOf(Buttons, button))
@@ -96,6 +109,25 @@ public class RiggingTheOddsScript : MonoBehaviour {
 
 		}
 	}
+
+	private IEnumerator ButtonAnim(KMSelectable button, float duration = 0.075f)
+	{
+        button.transform.localPosition = new Vector3(button.transform.localPosition.x, ButtonInitY, button.transform.localPosition.z);
+		float timer = 0;
+		while (timer < duration)
+		{
+			yield return null;
+			timer += Time.deltaTime;
+        }
+        button.transform.localPosition = new Vector3(button.transform.localPosition.x, ButtonInitY - ButtonDepression, button.transform.localPosition.z);
+        timer = 0;
+        while (timer < duration)
+        {
+            yield return null;
+            timer += Time.deltaTime;
+        }
+        button.transform.localPosition = new Vector3(button.transform.localPosition.x, ButtonInitY, button.transform.localPosition.z);
+    }
 
 	void MarkStation()
 	{
@@ -134,7 +166,7 @@ public class RiggingTheOddsScript : MonoBehaviour {
 			if (answerStations.Single().StationID == stations[currentStationPosition].StationID)
 			{
 				Audio.PlaySoundAtTransform("Solve", transform);
-				BottomDisplay.Set2Text("Congratulations!", "You won the JACKPOT!");
+				BottomDisplay.SetCentredTexts("Congratulations!", "You won the JACKPOT!");
 				moduleSolved = true;
 				Module.HandlePass();
 				BottomDisplay.StartFlash();
@@ -144,7 +176,7 @@ public class RiggingTheOddsScript : MonoBehaviour {
 			else
 			{
 				Audio.PlaySoundAtTransform("Strike", transform);
-				BottomDisplay.Set2Text("You Lose...", $"Station {(answerStations.First().StationID + 1):00} wins JACKPOT");
+				BottomDisplay.SetCentredTexts("You Lose!", $"Station {(answerStations.First().StationID + 1):00} wins JACKPOT");
 				Module.HandleStrike();
 				yield return new WaitForSeconds(3);
 				Reset(false);
@@ -153,9 +185,9 @@ public class RiggingTheOddsScript : MonoBehaviour {
 		}
 		else
 		{
-			BottomDisplay.Set2Text("No exact matches.");
+			BottomDisplay.SetCentredTexts("No exact matches.");
 			yield return new WaitForSeconds(1.5f);
-			BottomDisplay.Set2Text("No exact matches.", "Closest Station:");
+			BottomDisplay.SetCentredTexts("No exact matches.", "Closest Station:");
 			yield return new WaitForSeconds(1.5f);
 
 			Coroutine useIfMoreThanThreeStations = null;
@@ -167,7 +199,7 @@ public class RiggingTheOddsScript : MonoBehaviour {
 				if (answerStations.Count > 3)
 					useIfMoreThanThreeStations = StartCoroutine(ShowMoreThan3Stations(answerStations.OrderBy(x => x.StationID).Select((x, i) => new { Index = i, Value = x }).GroupBy(x => x.Index / 3).Select(x => x.Select(v => v.Value).ToArray()).ToList(), true));
 				else
-					BottomDisplay.Set2Text("You Win!", $"Closest Station: {answerStations.Select(x => (x.StationID + 1).ToString("00")).Join(",")}");
+					BottomDisplay.SetCentredTexts("You Win!", $"Closest Station: {answerStations.Select(x => (x.StationID + 1).ToString("00")).Join(",")}");
 
 				moduleSolved = true;
 				Module.HandlePass();
@@ -179,7 +211,7 @@ public class RiggingTheOddsScript : MonoBehaviour {
                 if (answerStations.Count > 3)
                     useIfMoreThanThreeStations = StartCoroutine(ShowMoreThan3Stations(answerStations.OrderBy(x => x.StationID).Select((x, i) => new { Index = i, Value = x }).GroupBy(x => x.Index / 3).Select(x => x.Select(v => v.Value).ToArray()).ToList(), false));
                 else
-                    BottomDisplay.Set2Text("You Lose...", $"Closest Station: {answerStations.Select(x => (x.StationID + 1).ToString("00")).Join(",")}");
+                    BottomDisplay.SetCentredTexts("You Lose...", $"Closest Station: {answerStations.Select(x => (x.StationID + 1).ToString("00")).Join(",")}");
 
 				Module.HandleStrike();
 
@@ -199,7 +231,7 @@ public class RiggingTheOddsScript : MonoBehaviour {
 		while (true)
 			foreach (var stationGroup in stationGroups)
 			{
-                BottomDisplay.Set2Text(hasWon ? "You Win!" : "You Lose...", $"Closest Station: {stationGroup.Select(x => (x.StationID + 1).ToString("00")).Join(",")}");
+                BottomDisplay.SetCentredTexts(hasWon ? "You Win!" : "You Lose...", $"Closest Station: {stationGroup.Select(x => (x.StationID + 1).ToString("00")).Join(",")}");
 				yield return new WaitForSeconds(0.5f);
             }			
 	}
