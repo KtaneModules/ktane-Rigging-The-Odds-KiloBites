@@ -113,6 +113,12 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!114 &21218380 stripped
+MonoBehaviour:
+  m_PrefabParentObject: {fileID: 114292215220955914, guid: 176e1a318ef9574419f7a0fcce8ec418,
+    type: 2}
+  m_PrefabInternal: {fileID: 1700523585}
+  m_Script: {fileID: -1675560866, guid: 45b809be76fd7a3468b6f517bced6f28, type: 3}
 --- !u!1 &130379922
 GameObject:
   m_ObjectHideFlags: 0
@@ -204,7 +210,7 @@ Prefab:
     - target: {fileID: 114848120511536268, guid: 8814ea52310d2614a9feda02ec355ae4,
         type: 2}
       propertyPath: AudioClips.Array.size
-      value: 3
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 439642, guid: 8814ea52310d2614a9feda02ec355ae4, type: 2}
       propertyPath: m_LocalPosition.x
@@ -253,6 +259,21 @@ Prefab:
       propertyPath: AudioClips.Array.data[2]
       value: 
       objectReference: {fileID: 8300000, guid: d8241964effb2e04d9d1f5c79b8f5ef7, type: 3}
+    - target: {fileID: 114848120511536268, guid: 8814ea52310d2614a9feda02ec355ae4,
+        type: 2}
+      propertyPath: AudioClips.Array.data[3]
+      value: 
+      objectReference: {fileID: 8300000, guid: 652e1460a087b6e45becf79cc7fe46d1, type: 3}
+    - target: {fileID: 114848120511536268, guid: 8814ea52310d2614a9feda02ec355ae4,
+        type: 2}
+      propertyPath: AudioClips.Array.data[4]
+      value: 
+      objectReference: {fileID: 8300000, guid: bbeb58b3727e7594084a341656a74ba0, type: 3}
+    - target: {fileID: 114848120511536268, guid: 8814ea52310d2614a9feda02ec355ae4,
+        type: 2}
+      propertyPath: AudioClips.Array.data[5]
+      value: 
+      objectReference: {fileID: 8300000, guid: 6dc7fd0f8a5e09f4292f4004fc583006, type: 3}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 8814ea52310d2614a9feda02ec355ae4, type: 2}
   m_IsPrefabParent: 0
@@ -595,6 +616,16 @@ Prefab:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 114121205099572972, guid: 176e1a318ef9574419f7a0fcce8ec418,
+        type: 2}
+      propertyPath: ButtonDepression
+      value: 0.002
+      objectReference: {fileID: 0}
+    - target: {fileID: 114238178129097884, guid: 176e1a318ef9574419f7a0fcce8ec418,
+        type: 2}
+      propertyPath: Audio
+      value: 
+      objectReference: {fileID: 21218380}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 176e1a318ef9574419f7a0fcce8ec418, type: 2}
   m_IsPrefabParent: 0

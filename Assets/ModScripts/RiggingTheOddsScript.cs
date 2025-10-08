@@ -31,6 +31,8 @@ public class RiggingTheOddsScript : MonoBehaviour {
 	private List<Station> stations;
 	private BottomDisplayInfo bottomInfo;
 
+	private KMAudio.KMAudioRef Sound;
+
 	private RTOPuzzle puzzle;
 
 	void Awake()
@@ -118,6 +120,7 @@ public class RiggingTheOddsScript : MonoBehaviour {
 		{
 			yield return null;
 			timer += Time.deltaTime;
+            button.transform.localPosition = new Vector3(button.transform.localPosition.x, Mathf.Lerp(ButtonInitY, ButtonInitY - ButtonDepression, timer / duration), button.transform.localPosition.z);
         }
         button.transform.localPosition = new Vector3(button.transform.localPosition.x, ButtonInitY - ButtonDepression, button.transform.localPosition.z);
         timer = 0;
@@ -125,6 +128,7 @@ public class RiggingTheOddsScript : MonoBehaviour {
         {
             yield return null;
             timer += Time.deltaTime;
+            button.transform.localPosition = new Vector3(button.transform.localPosition.x, Mathf.Lerp(ButtonInitY - ButtonDepression, ButtonInitY, timer / duration), button.transform.localPosition.z);
         }
         button.transform.localPosition = new Vector3(button.transform.localPosition.x, ButtonInitY, button.transform.localPosition.z);
     }
@@ -151,13 +155,17 @@ public class RiggingTheOddsScript : MonoBehaviour {
 
 	IEnumerator Commit()
 	{
-		SmallDisplay.StartCommit(stations[currentStationPosition], this);
+        Sound = Audio.PlaySoundAtTransformWithRef("commit music", transform);
+        SmallDisplay.StartCommit(stations[currentStationPosition], this);
 		BottomDisplay.ShowGoodLuck();
 		LargeDisplay.SetDigits("---");
 
 		yield return new WaitUntil(() => SmallDisplay.CommitCoroutine == null);
 
-		List<Station> answerStations;
+		if (Sound != null)
+			Sound.StopSound();
+
+        List<Station> answerStations;
 
 		puzzle.ProvideAnswer(bottomInfo, out answerStations);
 

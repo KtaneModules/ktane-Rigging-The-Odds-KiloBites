@@ -9,6 +9,7 @@ public class LargeDisplay : MonoBehaviour
     public Image[] ImageRends;
     public Sprite[] AllSprites;
     public float HighestPosition;
+    public KMAudio Audio;
 
     private List<Image> CopyRends = new List<Image>();
     private Coroutine ImageShwoopCoroutine;
@@ -71,6 +72,7 @@ public class LargeDisplay : MonoBehaviour
 
     private IEnumerator MoveDigit(int ix, float duration = 0.3f)
     {
+        Audio.PlaySoundAtTransform("reel fall", ImageRends[ix].transform);
         float timer = 0;
         while (timer < duration)
         {
@@ -79,6 +81,7 @@ public class LargeDisplay : MonoBehaviour
             SetImagePosition(ImageRends[ix], Easing.InSine(timer, 1, 0, duration));
             SetImagePosition(CopyRends[ix], Easing.InSine(timer, 0, -1, duration));
         }
+        Audio.PlaySoundAtTransform("reel set", ImageRends[ix].transform);
         SetImagePosition(ImageRends[ix], 0);
         Destroy(CopyRends[ix].gameObject);
     }

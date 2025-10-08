@@ -13,7 +13,7 @@ public class TopDisplay : MonoBehaviour
 
     public void SetStation(Station station)
     {
-        TextA.text = TextAGlow.text = $"{(station.IsStartingStation ? "STARTING" : "---")}\nSTATION";
+        TextA.text = TextAGlow.text = $"{(station.IsStartingStation ? "STARTING" : "")}\nSTATION";
         TextB.text = TextBGlow.text = (station.StationID + 1).ToString("00");
     }
 }
