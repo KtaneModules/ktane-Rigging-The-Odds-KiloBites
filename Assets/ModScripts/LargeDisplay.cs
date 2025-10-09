@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -10,6 +11,9 @@ public class LargeDisplay : MonoBehaviour
     public Sprite[] AllSprites;
     public float HighestPosition;
     public KMAudio Audio;
+
+    [NonSerialized]
+    public string DigitString;
 
     private List<Image> CopyRends = new List<Image>();
     private Coroutine ImageShwoopCoroutine;
@@ -51,6 +55,8 @@ public class LargeDisplay : MonoBehaviour
             SetImagePosition(ImageRends[i], 1);
             ImageRends[i].sprite = FindDigitSprite(digits[i]);
         }
+
+        DigitString = digits;
 
         ImageShwoopCoroutine = StartCoroutine(TellDigitsToMove());
     }

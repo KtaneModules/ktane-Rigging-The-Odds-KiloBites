@@ -1,0 +1,10 @@
+{
+  "name": "riggingTheOdds-Editor",
+  "references": [
+    "riggingTheOdds"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": []
+}

@@ -162,7 +162,7 @@ GameObject:
   - component: {fileID: 222734661998713950}
   - component: {fileID: 114518805785040352}
   m_Layer: 0
-  m_Name: Text B 2 Glow
+  m_Name: Text D Glow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -213,7 +213,7 @@ GameObject:
   - component: {fileID: 222512974196461672}
   - component: {fileID: 114942303341709742}
   m_Layer: 0
-  m_Name: Text A 2 Glow
+  m_Name: Text C Glow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -230,7 +230,7 @@ GameObject:
   - component: {fileID: 222572604387823794}
   - component: {fileID: 114665505010666012}
   m_Layer: 0
-  m_Name: Text B 2
+  m_Name: Text D
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -387,7 +387,7 @@ GameObject:
   - component: {fileID: 222451688581037492}
   - component: {fileID: 114369677672286276}
   m_Layer: 0
-  m_Name: Text A 2
+  m_Name: Text C
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2673,6 +2673,7 @@ MonoBehaviour:
   - {fileID: 114368538540647700}
   - {fileID: 114206168670165438}
   - {fileID: 114379965189238046}
+  ButtonDepression: 0.002
 --- !u!114 &114144897687262412
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2793,13 +2794,14 @@ MonoBehaviour:
   TextAGlow: {fileID: 114893305842949888}
   TextB: {fileID: 114736775800995378}
   TextBGlow: {fileID: 114729948780040098}
-  TextA2: {fileID: 114369677672286276}
-  TextA2Glow: {fileID: 114942303341709742}
-  TextB2: {fileID: 114665505010666012}
-  TextB2Glow: {fileID: 114518805785040352}
+  TextC: {fileID: 114369677672286276}
+  TextCGlow: {fileID: 114942303341709742}
+  TextD: {fileID: 114665505010666012}
+  TextDGlow: {fileID: 114518805785040352}
   TimeOfDrawPrefix: 'Time of Draw: '
   BuyInPrefix: 'Buy-in: '
   JackpotPrefix: 'JP: '
+  GoodLuck: Good luck!
 --- !u!114 &114238178129097884
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2829,6 +2831,7 @@ MonoBehaviour:
   - {fileID: 21300018, guid: 38ff91a96bf37dd43b7b40f2bca1b223, type: 3}
   - {fileID: 21300022, guid: 38ff91a96bf37dd43b7b40f2bca1b223, type: 3}
   HighestPosition: 100
+  Audio: {fileID: 114292215220955914}
 --- !u!114 &114241933095383788
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3058,7 +3061,9 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1.04
-  m_Text: 
+  m_Text: 'You lose!
+
+'
 --- !u!114 &114371269396968472
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3312,7 +3317,9 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1.04
-  m_Text: 
+  m_Text: '
+
+    Station 99 wins JACKPOT'
 --- !u!114 &114523003240803590
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3494,7 +3501,9 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1.04
-  m_Text: 
+  m_Text: '
+
+    Station 99 wins JACKPOT'
 --- !u!114 &114673057208265288
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4123,7 +4132,9 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1.04
-  m_Text: 
+  m_Text: 'You lose!
+
+'
 --- !u!114 &114994183588725006
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4579,7 +4590,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -0.0070000254}
+  m_AnchoredPosition: {x: -0.005999999, y: -0.0070000254}
   m_SizeDelta: {x: 2188, y: 500}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224194187701466918
@@ -4689,7 +4700,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.026, y: -0.0070000216}
+  m_AnchoredPosition: {x: -0.026, y: -0.007}
   m_SizeDelta: {x: 59.135136, y: 13.513514}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224351899205714314
@@ -5071,14 +5082,14 @@ RectTransform:
   m_GameObject: {fileID: 1258646030421172}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 9.60426e-10}
-  m_LocalScale: {x: 0.07314286, y: 0.074, z: 0.10000001}
+  m_LocalScale: {x: 0.073, y: 0.074, z: 0.10000001}
   m_Children: []
   m_Father: {fileID: 224515798817950568}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.017, y: -0.0070000254}
+  m_AnchoredPosition: {x: -0.012, y: -0.007}
   m_SizeDelta: {x: 59.45946, y: 13.513514}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224664005146836022
@@ -5096,7 +5107,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -0.0070000254}
+  m_AnchoredPosition: {x: 0.0050000018, y: -0.0070000254}
   m_SizeDelta: {x: 2200, y: 500}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224704068707574202
@@ -5357,7 +5368,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.017, y: -0.0070000216}
+  m_AnchoredPosition: {x: -0.017, y: -0.007}
   m_SizeDelta: {x: 59.45946, y: 13.513514}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224989031914762378
@@ -5404,13 +5415,13 @@ RectTransform:
   m_GameObject: {fileID: 1239455949113506}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 9.60426e-10}
-  m_LocalScale: {x: 0.07314286, y: 0.074, z: 0.10000001}
+  m_LocalScale: {x: 0.073, y: 0.074, z: 0.10000001}
   m_Children: []
   m_Father: {fileID: 224515798817950568}
   m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.026000002, y: -0.0070000254}
+  m_AnchoredPosition: {x: -0.023, y: -0.007}
   m_SizeDelta: {x: 59.135136, y: 13.513514}
   m_Pivot: {x: 0.5, y: 0.5}

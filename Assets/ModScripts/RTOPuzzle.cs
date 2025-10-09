@@ -10,7 +10,6 @@ public class RTOPuzzle
         public int[] DigitsToCheck { get; private set; }
         public int PrimaryIndex { get; private set; }
         public int? AlternativeIndex { get; private set; }
-
         public int[] DigitsToCheckIxes { get; private set; }
 
         public DigitFinder(int[] digitsToCheck, int primaryIndex, int? alternativeIndex, int[] digitsToCheckIxes)

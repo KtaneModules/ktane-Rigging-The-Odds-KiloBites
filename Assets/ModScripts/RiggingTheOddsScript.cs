@@ -166,6 +166,9 @@ public class RiggingTheOddsScript : MonoBehaviour {
         SmallDisplay.StartCommit(puzzle.ObtainWinningNumber(bottomInfo), this);
 		BottomDisplay.ShowGoodLuck();
 
+		if (LargeDisplay.DigitString == "qqq")
+			LargeDisplay.SetDigits(stations[currentStationPosition].Digits.Join(""));
+
 		yield return new WaitUntil(() => SmallDisplay.CommitCoroutine == null);
 
 		sound?.StopSound();
@@ -262,7 +265,6 @@ public class RiggingTheOddsScript : MonoBehaviour {
         Log($"[Rigging the Odds #{moduleId}] {bottomInfo}");
 
 		TopDisplay.SetStation(stations[currentStationPosition]);
-		LargeDisplay.SetDigits(stations[currentStationPosition].Digits.Join(""));
 		BottomDisplay.SetBuyIn(bottomInfo.BuyInAmount);
 		BottomDisplay.SetJackpot(bottomInfo.JackpotValue);
 		BottomDisplay.SetTimeOfDraw(bottomInfo.TimeOfDraw.Hour, bottomInfo.TimeOfDraw.Minutes, bottomInfo.TimeOfDraw.IsPM);
