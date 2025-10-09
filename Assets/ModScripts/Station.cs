@@ -12,4 +12,6 @@
     }
 
     public int CombinedDigits() => int.Parse(Digits.Join(""));
+
+    public override string ToString() => $"{(IsStartingStation ? "Starting " : string.Empty)}Station: {(StationID + 1):00}, Chance Number: {CombinedDigits():000}";
 }

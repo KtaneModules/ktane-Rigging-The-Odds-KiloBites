@@ -34,7 +34,7 @@ public class RTOPuzzle
             "..x"
         }.Select(x => x.Select(y => y == 'x').ToArray()).ToArray();
 
-        var primaryIxes = new[] { 2, 1, 1, 1, 0, 0 };
+        var primaryIxes = new[] { 2, 1, 0, 1, 0, 0 };
         var alternativeIxes = new List<int?>();
 
         alternativeIxes.AddRange(Enumerable.Repeat((int?)null, 3));
@@ -45,9 +45,14 @@ public class RTOPuzzle
 
     private List<Station> _allStations;
 
-    public RTOPuzzle(List<Station> allStations)
+    private readonly RiggingTheOddsScript _module;
+
+    public bool HasExactMatch;
+
+    public RTOPuzzle(List<Station> allStations, RiggingTheOddsScript module)
     {
         _allStations = allStations;
+        _module = module;
     }
 
     private static readonly int?[] hexGridIxes =
@@ -245,16 +250,21 @@ public class RTOPuzzle
     {
         var startingStation = _allStations.First(x => x.IsStartingStation);
         var startingPositions = Enumerable.Range(0, 61).Where(x => hexGridIxes[x] != null).Where(x => hexGridIxes[x].Value == startingStation.StationID).ToArray();
-        var startingPosition = startingPositions[startingStation.CombinedDigits() <= 500 ? 1 : 0];
+        var startingPosition = startingPositions[startingStation.CombinedDigits() <= 500 ? 0 : 1];
         var currentPosition = startingPosition;
 
         HexDirection? previousDirection = null;
+
+        _module.LogPuzzle(startingStation);
+        _module.LogPuzzle($"The starting position is {(startingStation.StationID + 1):00} ({(startingStation.CombinedDigits() <= 500 ? "topmost/left" : "bottom-most/rightmost")} occurence) in the hexagonal grid");
 
         usedStations.Add(startingStation);
 
         for (int i = 0; i < 3; i++)
         {
             var hexDirections = DetermineHexDirections(i, usedStations);
+
+            _module.LogPuzzle($"Stage {i + 1}:" + (hexDirections.Count == 0 ? "No conditions apply, move X once" : $"The following moves to be made {i + 1} time(s): {hexDirections.Join(", ")}"));
 
             if (hexDirections.Count == 0)
             {
@@ -269,15 +279,24 @@ public class RTOPuzzle
                 if (i == 2)
                 {
                     kcnStation = _allStations[hexGridIxes[currentPosition].Value];
+                    _module.LogPuzzle($"The KCN Station is: {kcnStation}");
                     break;
                 }
+
+                _module.LogPuzzle($"After moving, the next station is: {_allStations[hexGridIxes[currentPosition].Value]}");
 
                 startingPosition = currentPosition;
 
                 continue;
             }
 
-            var repeatDirections = hexDirections.SelectMany(x => Enumerable.Repeat(x, i + 1)).ToList();
+            List<HexDirection> repeatDirections = new List<HexDirection>();
+
+            if (i == 0)
+                repeatDirections = hexDirections.ToList();
+            else
+                foreach (var dir in hexDirections)
+                    repeatDirections.AddRange(Enumerable.Repeat(dir, i + 1));
 
             foreach (var direction in repeatDirections)
             {
@@ -295,10 +314,13 @@ public class RTOPuzzle
             if (i == 2)
             {
                 kcnStation = _allStations[hexGridIxes[currentPosition].Value];
+                _module.LogPuzzle($"The KCN Station is: {kcnStation}");
                 break;
             }
 
             usedStations.Add(_allStations[hexGridIxes[currentPosition].Value]);
+
+            _module.LogPuzzle($"After moving, the next station is: {_allStations[hexGridIxes[currentPosition].Value]}");
 
             startingPosition = currentPosition;
         }
@@ -352,7 +374,7 @@ public class RTOPuzzle
 
     private bool CheckRange(float jp, float start, float end) => jp >= start && jp <= end;
 
-    public void ProvideAnswer(BottomDisplayInfo info, out List<Station> foundStations)
+    public int[] ObtainWinningNumber(BottomDisplayInfo info)
     {
         var minuteRef = Enumerable.Range(0, 12).Select(x => x * 5).ToArray();
 
@@ -371,10 +393,10 @@ public class RTOPuzzle
         var buyInAmountRange = new[]
         {
             Enumerable.Range(0, 9),
-            Enumerable.Range(10, 25),
-            Enumerable.Range(25, 49),
-            Enumerable.Range(50, 74),
-            Enumerable.Range(75, 99),
+            Enumerable.Range(10, 25).Where(x => x < 25),
+            Enumerable.Range(25, 49).Where(x => x < 49),
+            Enumerable.Range(50, 74).Where(x => x < 74),
+            Enumerable.Range(75, 99).Where(x => x < 99),
             new[] { 99 }
         }.Select(x => x.Contains(info.BuyInAmount)).ToArray();
 
@@ -405,15 +427,147 @@ public class RTOPuzzle
 
         for (int i = 0; i < 3; i++)
             answerOutput[i] = tables[i][(i == 0 ? firstDigitBuyInIx : jpRangeIx), (i % 2 == 0 ? minuteIx : buyInIx)].GetResultedValue;
-            
+
+        return answerOutput;
+    }
+
+    public void ProvideAnswer(BottomDisplayInfo info, bool showLog, out List<Station> foundStations)
+    {
+
+        HasExactMatch = false;
+
+        var minuteRef = Enumerable.Range(0, 12).Select(x => x * 5).ToArray();
+
+        var jp = info.JackpotValue;
+
+        var checkJackpotRange = new[]
+        {
+            CheckRange(jp, 0, 999.9f),
+            CheckRange(jp, 1000, 4999.9f),
+            CheckRange(jp, 5000, 99999.9f),
+            CheckRange(jp, 10000, 24999.9f),
+            CheckRange(jp, 25000, 49999.9f),
+            jp >= 50000
+        };
+
+        var buyInAmountRange = new[]
+        {
+            Enumerable.Range(0, 9),
+            Enumerable.Range(10, 25).Where(x => x < 25),
+            Enumerable.Range(25, 49).Where(x => x < 49),
+            Enumerable.Range(50, 74).Where(x => x < 74),
+            Enumerable.Range(75, 99).Where(x => x < 99),
+            new[] { 99 }
+        }.Select(x => x.Contains(info.BuyInAmount)).ToArray();
+
+        var buyIn = info.BuyInAmount + 1;
+
+        var buyInRange = new[]
+        {
+            10,
+            20,
+            30,
+            40,
+            50,
+            60,
+            70,
+            80,
+            90,
+            100
+        }.Select((x, i) => i == 9 ? buyIn <= x : buyIn < x).ToArray();
+
+        var minuteIx = Enumerable.Range(0, 12).First(x => minuteRef[x] == info.TimeOfDraw.Minutes);
+        var jpRangeIx = Enumerable.Range(0, 6).First(x => checkJackpotRange[x]);
+        var buyInIx = Enumerable.Range(0, 10).First(x => buyInRange[x]);
+        var firstDigitBuyInIx = Enumerable.Range(0, 6).First(x => buyInAmountRange[x]);
+
+        var tables = WinningTables(usedStations.Select(x => x.Digits.ToArray()).ToList(), kcnStation.Digits.ToArray());
+
+        var answerOutput = new int[3];
+
+        for (int i = 0; i < 3; i++)
+            answerOutput[i] = tables[i][(i == 0 ? firstDigitBuyInIx : jpRangeIx), (i % 2 == 0 ? minuteIx : buyInIx)].GetResultedValue;
 
         foundStations = FindPrioritizedStations(answerOutput);
+
+        if (showLog)
+            _module.LogPuzzle($"The new answer(s) given with the current jackpot of {info.JackpotValue:N1} is/are: {foundStations.Select(x => (x.StationID + 1).ToString("00")).Join(", ")}");
+    }
+
+    public void PredetermineAnswerLog(BottomDisplayInfo info)
+    {
+        var minuteRef = Enumerable.Range(0, 12).Select(x => x * 5).ToArray();
+
+        var jp = info.JackpotValue;
+
+        var checkJackpotRange = new[]
+        {
+            CheckRange(jp, 0, 999.9f),
+            CheckRange(jp, 1000, 4999.9f),
+            CheckRange(jp, 5000, 99999.9f),
+            CheckRange(jp, 10000, 24999.9f),
+            CheckRange(jp, 25000, 49999.9f),
+            jp >= 50000
+        };
+
+        var buyInAmountRange = new[]
+        {
+            Enumerable.Range(0, 9),
+            Enumerable.Range(10, 25).Where(x => x < 25),
+            Enumerable.Range(25, 49).Where(x => x < 49),
+            Enumerable.Range(50, 74).Where(x => x < 74),
+            Enumerable.Range(75, 99).Where(x => x < 99),
+            new[] { 99 }
+        }.Select(x => x.Contains(info.BuyInAmount)).ToArray();
+
+        var buyIn = info.BuyInAmount + 1;
+
+        var buyInRange = new[]
+        {
+            10,
+            20,
+            30,
+            40,
+            50,
+            60,
+            70,
+            80,
+            90,
+            100
+        }.Select((x, i) => i == 9 ? buyIn <= x : buyIn < x).ToArray();
+
+        var minuteIx = Enumerable.Range(0, 12).First(x => minuteRef[x] == info.TimeOfDraw.Minutes);
+        var jpRangeIx = Enumerable.Range(0, 6).First(x => checkJackpotRange[x]);
+        var buyInIx = Enumerable.Range(0, 10).First(x => buyInRange[x]);
+        var firstDigitBuyInIx = Enumerable.Range(0, 6).First(x => buyInAmountRange[x]);
+
+        var tables = WinningTables(usedStations.Select(x => x.Digits.ToArray()).ToList(), kcnStation.Digits.ToArray());
+
+        var answerOutput = new int[3];
+
+        for (int i = 0; i < 3; i++)
+        {
+            answerOutput[i] = tables[i][(i == 0 ? firstDigitBuyInIx : jpRangeIx), (i % 2 == 0 ? minuteIx : buyInIx)].GetResultedValue;
+            _module.LogPuzzle($"{kcnStation.Digits[i]} {tables[i][(i == 0 ? firstDigitBuyInIx : jpRangeIx), (i % 2 == 0 ? minuteIx : buyInIx)]} = {tables[i][(i == 0 ? firstDigitBuyInIx : jpRangeIx), (i % 2 == 0 ? minuteIx : buyInIx)].GetResultedValue}");
+        }
+
+        _module.LogPuzzle($"The final winning number is: {answerOutput.Join("").PadLeft(3, '0')}");
+
+        var finalStations = FindPrioritizedStations(answerOutput);
+
+        if (HasExactMatch)
+            _module.LogPuzzle($"There is one exact match with the winning number at station {(_allStations.First(x => x.Digits.SequenceEqual(answerOutput)).StationID + 1):00}");
+        else
+            _module.LogPuzzle($"The closest station(s) is/are: {finalStations.Select(x => (x.StationID + 1).ToString("00")).Join(", ")}");
     }
 
     private List<Station> FindPrioritizedStations(int[] winningNumbers)
     {
         if (_allStations.Any(x => x.Digits.SequenceEqual(winningNumbers)))
+        {
+            HasExactMatch = true;
             return new List<Station> { _allStations.First(x => x.Digits.SequenceEqual(winningNumbers)) };
+        }
 
         List<Station> finalStations;
 

@@ -29,15 +29,15 @@ public class SmallDisplay : MonoBehaviour
 
     public void SetNumber(int ix, int n) => SmallSubDisplays[ix].SetCharacter(n);
 
-    public void StartCommit(Station station, RiggingTheOddsScript module)
+    public void StartCommit(int[] winningNumber, RiggingTheOddsScript module)
     {
         for (int i = 0; i < 3; i++)
             smallDisplayCoroutines[i] = StartCoroutine(CycleRandomDigits(SmallSubDisplays[i]));
 
-        CommitCoroutine = StartCoroutine(Commit(station, module));
+        CommitCoroutine = StartCoroutine(Commit(winningNumber, module));
     }
 
-    private IEnumerator Commit(Station station, RiggingTheOddsScript module)
+    private IEnumerator Commit(int[] winningNumber, RiggingTheOddsScript module)
     {
         var secondsPerDisplay = new[] { 1f, 1.5f, 2f };
 
@@ -45,7 +45,7 @@ public class SmallDisplay : MonoBehaviour
         {
             yield return new WaitForSeconds(secondsPerDisplay[i]);
             StopCoroutine(smallDisplayCoroutines[i]);
-            SmallSubDisplays[i].SetCharacter(station.Digits[i]);
+            SmallSubDisplays[i].SetCharacter(winningNumber[i]);
             module.PlayBlip();
         }
 

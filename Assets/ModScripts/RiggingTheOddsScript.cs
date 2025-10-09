@@ -31,7 +31,7 @@ public class RiggingTheOddsScript : MonoBehaviour {
 	private List<Station> stations;
 	private BottomDisplayInfo bottomInfo;
 
-	private KMAudio.KMAudioRef Sound;
+	private KMAudio.KMAudioRef sound;
 
 	private RTOPuzzle puzzle;
 
@@ -65,10 +65,17 @@ public class RiggingTheOddsScript : MonoBehaviour {
 		BottomDisplay.SetBuyIn(bottomInfo.BuyInAmount + 1);
 		BottomDisplay.SetTimeOfDraw(bottomInfo.TimeOfDraw.Hour, bottomInfo.TimeOfDraw.Minutes, bottomInfo.TimeOfDraw.IsPM);
 
-		puzzle = new RTOPuzzle(stations);
+		Log($"[Rigging the Odds #{moduleId}] {bottomInfo}");
+
+		puzzle = new RTOPuzzle(stations, this);
 
 		puzzle.DetermineKeyStation();
+		puzzle.PredetermineAnswerLog(bottomInfo);
     }
+
+	void OnDestroy() => sound?.StopSound();
+
+	public void LogPuzzle(object args) => Log($"[Rigging the Odds #{moduleId}] {args}");
 
 	void ButtonPress(KMSelectable button, int pos)
 	{
@@ -155,25 +162,24 @@ public class RiggingTheOddsScript : MonoBehaviour {
 
 	IEnumerator Commit()
 	{
-        Sound = Audio.PlaySoundAtTransformWithRef("commit music", transform);
-        SmallDisplay.StartCommit(stations[currentStationPosition], this);
+        sound = Audio.PlaySoundAtTransformWithRef("commit music", transform);
+        SmallDisplay.StartCommit(puzzle.ObtainWinningNumber(bottomInfo), this);
 		BottomDisplay.ShowGoodLuck();
-		LargeDisplay.SetDigits("---");
 
 		yield return new WaitUntil(() => SmallDisplay.CommitCoroutine == null);
 
-		if (Sound != null)
-			Sound.StopSound();
+		sound?.StopSound();
 
         List<Station> answerStations;
 
-		puzzle.ProvideAnswer(bottomInfo, out answerStations);
+		puzzle.ProvideAnswer(bottomInfo, true, out answerStations);
 
-		if (answerStations.Count == 1 && stations.Count(x => x.StationID == answerStations.First().StationID) == 1)
+		if (puzzle.HasExactMatch)
 		{
 			if (answerStations.Single().StationID == stations[currentStationPosition].StationID)
 			{
 				Audio.PlaySoundAtTransform("Solve", transform);
+				Log($"[Rigging the Odds #{moduleId}] You won the jackpot! Solved!");
 				BottomDisplay.SetCentredTexts("Congratulations!", "You won the JACKPOT!");
 				moduleSolved = true;
 				Module.HandlePass();
@@ -184,7 +190,8 @@ public class RiggingTheOddsScript : MonoBehaviour {
 			else
 			{
 				Audio.PlaySoundAtTransform("Strike", transform);
-				BottomDisplay.SetCentredTexts("You Lose!", $"Station {(answerStations.First().StationID + 1):00} wins JACKPOT");
+                Log($"[Rigging the Odds #{moduleId}] You lost the jackpot! Strike!");
+                BottomDisplay.SetCentredTexts("You Lose...", $"Station {(answerStations.First().StationID + 1):00} wins JACKPOT");
 				Module.HandleStrike();
 				yield return new WaitForSeconds(3);
 				Reset(false);
@@ -204,7 +211,9 @@ public class RiggingTheOddsScript : MonoBehaviour {
 			{
 				Audio.PlaySoundAtTransform("Solve", transform);
 
-				if (answerStations.Count > 3)
+                Log($"[Rigging the Odds #{moduleId}] The station selected won! Solved!");
+
+                if (answerStations.Count > 3)
 					useIfMoreThanThreeStations = StartCoroutine(ShowMoreThan3Stations(answerStations.OrderBy(x => x.StationID).Select((x, i) => new { Index = i, Value = x }).GroupBy(x => x.Index / 3).Select(x => x.Select(v => v.Value).ToArray()).ToList(), true));
 				else
 					BottomDisplay.SetCentredTexts("You Win!", $"Closest Station: {answerStations.Select(x => (x.StationID + 1).ToString("00")).Join(",")}");
@@ -215,6 +224,8 @@ public class RiggingTheOddsScript : MonoBehaviour {
 			else
 			{
 				Audio.PlaySoundAtTransform("Strike", transform);
+
+                Log($"[Rigging the Odds #{moduleId}] The station selected lost! Strike!");
 
                 if (answerStations.Count > 3)
                     useIfMoreThanThreeStations = StartCoroutine(ShowMoreThan3Stations(answerStations.OrderBy(x => x.StationID).Select((x, i) => new { Index = i, Value = x }).GroupBy(x => x.Index / 3).Select(x => x.Select(v => v.Value).ToArray()).ToList(), false));
@@ -247,12 +258,8 @@ public class RiggingTheOddsScript : MonoBehaviour {
 	void Reset(bool moreThanOneInstance)
 	{
 		bottomInfo.PerformReset(moreThanOneInstance);
-
-		stations.ForEach(x => x.IsAlreadySeen = false);
-		stations.First(x => x.IsStartingStation).IsStartingStation = false;
-		stations[currentStationPosition].IsStartingStation = true;
-		puzzle = new RTOPuzzle(stations);
-		puzzle.DetermineKeyStation();
+        Log($"[Rigging the Odds #{moduleId}] Reset has been made.");
+        Log($"[Rigging the Odds #{moduleId}] {bottomInfo}");
 
 		TopDisplay.SetStation(stations[currentStationPosition]);
 		LargeDisplay.SetDigits(stations[currentStationPosition].Digits.Join(""));
@@ -261,7 +268,14 @@ public class RiggingTheOddsScript : MonoBehaviour {
 		BottomDisplay.SetTimeOfDraw(bottomInfo.TimeOfDraw.Hour, bottomInfo.TimeOfDraw.Minutes, bottomInfo.TimeOfDraw.IsPM);
 		SmallDisplay.ResetAllDisplays();
 
-		increaseJP = StartCoroutine(IncreaseJackpot());
+        stations.ForEach(x => x.IsAlreadySeen = false);
+        stations.First(x => x.IsStartingStation).IsStartingStation = false;
+        stations[currentStationPosition].IsStartingStation = true;
+        puzzle = new RTOPuzzle(stations, this);
+        puzzle.DetermineKeyStation();
+		puzzle.PredetermineAnswerLog(bottomInfo);
+
+        increaseJP = StartCoroutine(IncreaseJackpot());
 	}
 	
 	IEnumerator IncreaseJackpot()
@@ -279,37 +293,167 @@ public class RiggingTheOddsScript : MonoBehaviour {
 		increaseJP = null;
 	}
 
-	private float GetSeconds(int jp) => Enumerable.Range(0, 1000).Contains(jp) ? 1.6f : Enumerable.Range(1000, 5000).Contains(jp) ? 6.6f :
-		Enumerable.Range(5000, 10000).Contains(jp) ? 8.3f : Enumerable.Range(10000, 25000).Contains(jp) ? 25 : Enumerable.Range(25000, 50000).Contains(jp) ? 41.6f : 75;
-	
-	
-	void Update()
-    {
+	private bool CheckRange(int start, int end, int jp) => jp >= start && jp <= end;
 
-    }
+	private float GetSeconds(int jp) => CheckRange(0, 1000, jp) ? 0.0625f : CheckRange(1000, 5000, jp) ? 0.0152f :
+		CheckRange(5000, 10000, jp) ? 0.12f : CheckRange(10000, 25000, jp) ? 0.004f : CheckRange(25000, 50000, jp) ? 0.0024f : 0.0013f;
 
 	// Twitch Plays
 
 
 #pragma warning disable 414
-	private readonly string TwitchHelpMessage = @"!{0} something";
+	private readonly string TwitchHelpMessage = @"!{0} station 25 [tunes to that specified station] || !{0} commit [commits to the station selected]";
 #pragma warning restore 414
 
 	IEnumerator ProcessTwitchCommand(string command)
     {
 		string[] split = command.ToUpperInvariant().Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
-		yield return null;
+
+		if (currentlyCommitting != null)
+		{
+			yield return "sendtochaterror You cannot interact with the module while a commit is occurring!";
+			yield break;
+		}
+
+		switch (split[0])
+		{
+			case "STATION":
+				if (split.Length == 1)
+				{
+					yield return "sendtochaterror Please specify what station to tune into!";
+					yield break;
+				}
+
+				if (split.Length > 2)
+				{
+					yield return "sendtochaterror Too many parameters!";
+					yield break;
+				}
+
+				if (split[1].Length > 2 || !split[1].All(char.IsDigit))
+				{
+					yield return $"sendtochaterror {split[1]} isn't a valid station number!";
+					yield break;
+				}
+
+				if (!Enumerable.Range(0, 30).Contains(int.Parse(split[1]) - 1))
+				{
+					yield return "sendtochaterror Make sure the station you're tuning into is in the range of 1-30 inclusive!";
+					yield break;
+				}
+
+				
+
+				yield return null;
+
+                var target = int.Parse(split[1]) - 1;
+
+				var presses = CalculatePressesForTP(currentStationPosition, target);
+
+				foreach (var ix in presses)
+				{
+					Buttons[ix].OnInteract();
+					yield return new WaitForSeconds(0.8f);
+				}
+                yield break;
+			case "COMMIT":
+				if (split.Length > 1)
+				{
+					yield return "sendtochaterror Too many parameters!";
+					yield break;
+				}
+
+				yield return null;
+
+				Buttons[2].OnInteract();
+				yield return new WaitForSeconds(0.1f);
+
+				yield return "solve";
+
+				yield break;
+			default:
+				yield return "sendtochaterror The command you inputted is invalid!";
+				yield break;
+		}
     }
+
+	private List<int> CalculatePressesForTP(int start, int target)
+	{
+		var currentStationNumber = start;
+		var list = new List<int>();
+
+		while (target != currentStationNumber)
+		{
+			var current = currentStationNumber;
+			var distance = (Math.Abs(current - target) + 10) % 30 - 10;
+
+			if (current > target)
+				distance *= -1;
+
+			if (distance > 4)
+			{
+				list.Add(4);
+				currentStationNumber += 5;
+			}
+			else if (distance > 0)
+			{
+				list.Add(3);
+				currentStationNumber++;
+			}
+			else if (distance < -4)
+			{
+				list.Add(0);
+				currentStationNumber -= 5;
+			}
+			else if (distance < 0)
+			{
+				list.Add(1);
+				currentStationNumber--;
+			}
+			currentStationNumber = (currentStationNumber + 30) % 30;
+		}
+
+		return list;
+	}
 
 	IEnumerator TwitchHandleForcedSolve()
     {
+		while (!isActivated || currentlyCommitting != null)
+		{
+			if (moduleSolved)
+				yield break;
+
+			yield return true;
+		}
+
+		if (increaseJP != null)
+		{
+			StopCoroutine(increaseJP);
+			increaseJP = null;
+		}
+
 		yield return null;
+
+		List<Station> possibleStations;
+
+		puzzle.ProvideAnswer(bottomInfo, false, out possibleStations);
+
+		var determinedTarget = possibleStations.Select(x => x.StationID).PickRandom();
+
+		var path = CalculatePressesForTP(currentStationPosition, determinedTarget);
+
+		foreach (var ix in path)
+		{
+			Buttons[ix].OnInteract();
+			yield return new WaitForSeconds(0.5f);
+		}
+
+		Buttons[2].OnInteract();
+		yield return new WaitForSeconds(0.1f);
+
+		while (!moduleSolved)
+			yield return true;
     }
 
 
 }
-
-
-
-
-

@@ -21,6 +21,8 @@ public class BottomDisplayInfo
             Minutes = minutes;
             IsPM = isPM;
         }
+
+        public override string ToString() => $"{Hour:00}:{Minutes:00} {(IsPM ? "PM" : "AM")}";
     }
 
     public static TimeDraw[] GetDesiredTimes()
@@ -69,4 +71,7 @@ public class BottomDisplayInfo
                 startingJackpotValues[2].Contains((int)JackpotValue) ? 5000 : startingJackpotValues[3].Contains((int)JackpotValue) ? 10000 :
                 startingJackpotValues[4].Contains((int)JackpotValue) ? 25000 : 50000;
     }
+
+    public override string ToString() => $"Time of Draw: {TimeOfDraw}, Buy-In: {(BuyInAmount == 99 ? "MAX" : (BuyInAmount + 1).ToString())}, Jackpot: {JackpotValue:0,0}";
+
 }
