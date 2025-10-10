@@ -391,13 +391,13 @@ public class RTOPuzzle
 
         var buyInAmountRange = new[]
         {
-            Enumerable.Range(0, 9),
-            Enumerable.Range(10, 25).Where(x => x < 25),
-            Enumerable.Range(25, 49).Where(x => x < 49),
-            Enumerable.Range(50, 74).Where(x => x < 74),
-            Enumerable.Range(75, 99).Where(x => x < 99),
-            new[] { 99 }
-        }.Select(x => x.Contains(info.BuyInAmount)).ToArray();
+            info.BuyInAmount < 10,
+            info.BuyInAmount < 25,
+            info.BuyInAmount < 49,
+            info.BuyInAmount < 74,
+            info.BuyInAmount < 99,
+            info.BuyInAmount == 99
+        };
 
         var buyIn = info.BuyInAmount + 1;
 
@@ -451,13 +451,13 @@ public class RTOPuzzle
 
         var buyInAmountRange = new[]
         {
-            Enumerable.Range(0, 9),
-            Enumerable.Range(10, 25).Where(x => x < 25),
-            Enumerable.Range(25, 49).Where(x => x < 49),
-            Enumerable.Range(50, 74).Where(x => x < 74),
-            Enumerable.Range(75, 99).Where(x => x < 99),
-            new[] { 99 }
-        }.Select(x => x.Contains(info.BuyInAmount)).ToArray();
+            info.BuyInAmount < 10,
+            info.BuyInAmount < 25,
+            info.BuyInAmount < 49,
+            info.BuyInAmount < 74,
+            info.BuyInAmount < 99,
+            info.BuyInAmount == 99
+        };
 
         var buyIn = info.BuyInAmount + 1;
 
@@ -511,13 +511,13 @@ public class RTOPuzzle
 
         var buyInAmountRange = new[]
         {
-            Enumerable.Range(0, 9),
-            Enumerable.Range(10, 25).Where(x => x < 25),
-            Enumerable.Range(25, 49).Where(x => x < 49),
-            Enumerable.Range(50, 74).Where(x => x < 74),
-            Enumerable.Range(75, 99).Where(x => x < 99),
-            new[] { 99 }
-        }.Select(x => x.Contains(info.BuyInAmount)).ToArray();
+            info.BuyInAmount < 10,
+            info.BuyInAmount < 25,
+            info.BuyInAmount < 49,
+            info.BuyInAmount < 74,
+            info.BuyInAmount < 99,
+            info.BuyInAmount == 99
+        };
 
         var buyIn = info.BuyInAmount + 1;
 
