@@ -1,11 +1,13 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEngine;
+
 public static class AssemblyDefinitions
 {
     // Prevent any loaded assemblies from being the name of an Assembly Definition.
@@ -26,20 +28,22 @@ public static class AssemblyDefinitions
     }
     
     
-    internal static void RunChecks()
+    internal static bool RunChecks(bool warn = true)
     {
         // Don't do anything if the ID hasn't changed. This also avoids a false error from reserved due to the current assembly definition being loaded in the project.
         if (DefinitionExists())
-            return;
+            return true;
         if (reserved.Contains(ModConfig.ID) || string.IsNullOrEmpty(ModConfig.ID))
         {
-            Debug.LogWarningFormat("The selected id [\"{0}\"] cannot be used with this project due to it being reserved or empty. Please choose a different id for your mod.", ModConfig.ID);
-            return;
+            if(warn)
+                Debug.LogWarningFormat("The selected id [\"{0}\"] cannot be used with this project due to it being reserved or empty. Please choose a different id for your mod.", ModConfig.ID);
+            return false;
         }
         // Delete any existing assembly definitions, as they may conflict with the new ones. Meta files are also deleted.
         // Additionally delete any previous .csproj files. These may conflict with Visual Studio Code, and may clutter the root folder if used consecutively.
         RemoveDefinitions();
         CreateDefinitions();
+        return true;
     }
 
     private static void RemoveDefinitions()
@@ -75,9 +79,17 @@ public static class AssemblyDefinitions
     // Manually change the startup project in the generated sln, as Unity does not change this after creating an assembly definition.
     private static void Updatesln()
     {
+        if(!File.Exists(slnFile))
+            Initsln();
         var sln = File.ReadAllText(slnFile);
         sln = Regex.Replace(sln, @"StartupItem = .+\.csproj", "StartupItem = " + ModConfig.ID + ".csproj");
         File.WriteAllText(slnFile, sln);
+    }
+    
+    //Force Unity to generate the solution file
+    private static void Initsln()
+    {
+        System.Reflection.Assembly.GetAssembly(typeof(MonoScript)).GetType("UnityEditor.SyncVS").GetMethod("SyncSolution", BindingFlags.Public | BindingFlags.Static).Invoke(null, new object[0]);
     }
 
     // Unity does not supply an option to generate assembly definitions through code, so we must create our own.

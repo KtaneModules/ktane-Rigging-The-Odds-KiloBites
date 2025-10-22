@@ -17,7 +17,8 @@ MonoBehaviour:
   description: 'That''s right, we''re gonna cheat!
 
 
-    Determine what station to commit to based off of information provided'
+    Determine what station to commit based off of information provided and win.'
   version: 1
   outputFolder: build
-  previewImage: {fileID: 0}
+  debugBuild: 1
+  previewImage: {fileID: 2800000, guid: 8cc8d70b3e044444e9567b2fd2ccb214, type: 3}

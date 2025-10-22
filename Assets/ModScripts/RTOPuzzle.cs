@@ -335,11 +335,11 @@ public class RTOPuzzle
                 conditions = new[]
                 {
                     usedStations[0].Digits[0] % 2 == 0,
-                    (usedStations[0].Digits[1] - usedStations[0].Digits[2]) < 5,
+                    Math.Abs(usedStations[0].Digits[1] - usedStations[0].Digits[2]) < 5,
                     usedStations[0].Digits[0] > usedStations[0].Digits[2],
                     usedStations[0].CombinedDigits() > 499,
                     usedStations[0].Digits[1] + usedStations[0].Digits[0] > usedStations[0].Digits[2],
-                    usedStations[0].CombinedDigits() % 2 == 1
+                    usedStations[0].Digits[2] % 2 == 1
                 };
                 break;
             case 1:
@@ -349,14 +349,14 @@ public class RTOPuzzle
                     usedStations[1].CombinedDigits() > usedStations[0].CombinedDigits(),
                     usedStations[1].Digits[1] > usedStations[0].Digits[1],
                     usedStations[1].Digits[2] + usedStations[1].Digits[0] > 9,
-                    (usedStations[1].Digits[0] - usedStations[1].Digits[1]) < (usedStations[0].Digits[0] - usedStations[1].Digits[1]),
+                    Math.Abs(usedStations[1].Digits[0] - usedStations[1].Digits[1]) < Math.Abs(usedStations[0].Digits[0] - usedStations[1].Digits[1]),
                     usedStations[1].Digits[2] <= usedStations[0].Digits[2]
                 };
                 break;
             case 2:
                 conditions = new[]
                 {
-                    (usedStations[0].Digits[2] -  usedStations[1].Digits[2]) > usedStations[2].Digits[2],
+                    Math.Abs(usedStations[0].Digits[2] -  usedStations[1].Digits[2]) > usedStations[2].Digits[2],
                     usedStations[2].Digits[2] - usedStations[2].Digits[0] < 0,
                     usedStations[2].Digits[1] % 2 == usedStations[1].Digits[1] % 2,
                     usedStations[2].Digits[1] + usedStations[2].Digits[2] > usedStations[1].Digits[1] + usedStations[1].Digits[2],

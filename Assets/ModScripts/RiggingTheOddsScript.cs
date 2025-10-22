@@ -264,7 +264,7 @@ public class RiggingTheOddsScript : MonoBehaviour {
         Log($"[Rigging the Odds #{moduleId}] Reset has been made.");
         Log($"[Rigging the Odds #{moduleId}] {bottomInfo}");
 
-		TopDisplay.SetStation(stations[currentStationPosition]);
+		
 		BottomDisplay.SetBuyIn(bottomInfo.BuyInAmount);
 		BottomDisplay.SetJackpot(bottomInfo.JackpotValue);
 		BottomDisplay.SetTimeOfDraw(bottomInfo.TimeOfDraw.Hour, bottomInfo.TimeOfDraw.Minutes, bottomInfo.TimeOfDraw.IsPM);
@@ -273,6 +273,7 @@ public class RiggingTheOddsScript : MonoBehaviour {
         stations.ForEach(x => x.IsAlreadySeen = false);
         stations.First(x => x.IsStartingStation).IsStartingStation = false;
         stations[currentStationPosition].IsStartingStation = true;
+        TopDisplay.SetStation(stations[currentStationPosition]);
         puzzle = new RTOPuzzle(stations, this);
         puzzle.DetermineKeyStation();
 		puzzle.PredetermineAnswerLog(bottomInfo);
