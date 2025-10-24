@@ -40,7 +40,7 @@ public class RiggingTheOddsScript : MonoBehaviour {
 		moduleId = moduleIdCounter++;
 		rtoId = rtoIdCounter++;
 
-		Module.OnActivate += Activate;
+		Module.OnActivate += delegate () { StartCoroutine(Activate()); };
 
 		ButtonAnimCoroutines = new Coroutine[Buttons.Length];
 		ButtonInitY = Buttons[0].transform.localPosition.y;
@@ -156,12 +156,15 @@ public class RiggingTheOddsScript : MonoBehaviour {
 		stations[currentStationPosition].IsAlreadySeen = true;
 	}
 
-	void Activate()
+	IEnumerator Activate()
 	{
-		isActivated = true;
 		LargeDisplay.IdIsOne = rtoId == 1;
 		LargeDisplay.SetDigits(stations[currentStationPosition].Digits.Join(""));
 		increaseJP = StartCoroutine(IncreaseJackpot());
+
+		yield return new WaitWhile(() => LargeDisplay.Activate != null);
+
+		isActivated = true;
 	}
 
 	public void PlayBlip() => Audio.PlaySoundAtTransform("Blip", transform);
@@ -321,6 +324,12 @@ public class RiggingTheOddsScript : MonoBehaviour {
 		if (currentlyCommitting != null)
 		{
 			yield return "sendtochaterror You cannot interact with the module while a commit is occurring!";
+			yield break;
+		}
+
+		if (!isActivated)
+		{
+			yield return "sendtochaterror You cannot interact with the module while it's not activated!";
 			yield break;
 		}
 

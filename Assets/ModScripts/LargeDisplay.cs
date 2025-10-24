@@ -24,7 +24,9 @@ public class LargeDisplay : MonoBehaviour
 
     private bool[] allDigitsSet = new bool[3];
     private bool isActivated;
-    private Coroutine activate;
+
+    [NonSerialized]
+    public Coroutine Activate;
 
     private void Awake()
     {
@@ -70,7 +72,7 @@ public class LargeDisplay : MonoBehaviour
         if (isActivated)
             return;
 
-        activate = StartCoroutine(Init());
+        Activate = StartCoroutine(Init());
     }
 
     private IEnumerator Init()
@@ -78,7 +80,7 @@ public class LargeDisplay : MonoBehaviour
         yield return new WaitUntil(() => allDigitsSet.All(x => x));
 
         isActivated = true;
-        activate = null;
+        Activate = null;
     }
 
     private IEnumerator TellDigitsToMove(float interval = 0.1f)
