@@ -17,7 +17,10 @@ MonoBehaviour:
   description: 'That''s right, we''re gonna cheat!
 
 
-    Determine what station to commit based off of information provided and win.'
+    Determine what station to commit based off of information provided and win.
+
+
+    Manual by Lumbud84'
   version: 1
   outputFolder: build
   debugBuild: 1

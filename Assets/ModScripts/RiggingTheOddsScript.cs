@@ -20,9 +20,9 @@ public class RiggingTheOddsScript : MonoBehaviour {
 	private Coroutine increaseJP, currentlyCommitting;
 	private Coroutine[] ButtonAnimCoroutines;
 
-	static int moduleIdCounter = 1;
+	static int moduleIdCounter = 1, rtoIdCounter = 1;
 	private float ButtonInitY;
-	int moduleId;
+	int moduleId, rtoId;
 	private bool moduleSolved;
 	private bool isActivated;
 
@@ -38,6 +38,7 @@ public class RiggingTheOddsScript : MonoBehaviour {
 	void Awake()
     {
 		moduleId = moduleIdCounter++;
+		rtoId = rtoIdCounter++;
 
 		Module.OnActivate += Activate;
 
@@ -73,7 +74,11 @@ public class RiggingTheOddsScript : MonoBehaviour {
 		puzzle.PredetermineAnswerLog(bottomInfo);
     }
 
-	void OnDestroy() => sound?.StopSound();
+	void OnDestroy()
+	{
+        sound?.StopSound();
+		rtoIdCounter = 1;
+    }
 
 	public void LogPuzzle(object args) => Log($"[Rigging the Odds #{moduleId}] {args}");
 
@@ -154,6 +159,7 @@ public class RiggingTheOddsScript : MonoBehaviour {
 	void Activate()
 	{
 		isActivated = true;
+		LargeDisplay.IdIsOne = rtoId == 1;
 		LargeDisplay.SetDigits(stations[currentStationPosition].Digits.Join(""));
 		increaseJP = StartCoroutine(IncreaseJackpot());
 	}

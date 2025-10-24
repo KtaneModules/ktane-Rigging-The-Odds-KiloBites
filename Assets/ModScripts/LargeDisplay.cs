@@ -15,9 +15,16 @@ public class LargeDisplay : MonoBehaviour
     [NonSerialized]
     public string DigitString;
 
+    [NonSerialized]
+    public bool IdIsOne;
+
     private List<Image> CopyRends = new List<Image>();
     private Coroutine ImageShwoopCoroutine;
     private List<Coroutine> ImageMoveCoroutines = new List<Coroutine>();
+
+    private bool[] allDigitsSet = new bool[3];
+    private bool isActivated;
+    private Coroutine activate;
 
     private void Awake()
     {
@@ -59,6 +66,19 @@ public class LargeDisplay : MonoBehaviour
         DigitString = digits;
 
         ImageShwoopCoroutine = StartCoroutine(TellDigitsToMove());
+
+        if (isActivated)
+            return;
+
+        activate = StartCoroutine(Init());
+    }
+
+    private IEnumerator Init()
+    {
+        yield return new WaitUntil(() => allDigitsSet.All(x => x));
+
+        isActivated = true;
+        activate = null;
     }
 
     private IEnumerator TellDigitsToMove(float interval = 0.1f)
@@ -78,7 +98,10 @@ public class LargeDisplay : MonoBehaviour
 
     private IEnumerator MoveDigit(int ix, float duration = 0.3f)
     {
-        Audio.PlaySoundAtTransform("reel fall", ImageRends[ix].transform);
+        if (IdIsOne || isActivated)
+            Audio.PlaySoundAtTransform("reel fall", ImageRends[ix].transform);
+
+
         float timer = 0;
         while (timer < duration)
         {
@@ -87,9 +110,18 @@ public class LargeDisplay : MonoBehaviour
             SetImagePosition(ImageRends[ix], Easing.InSine(timer, 1, 0, duration));
             SetImagePosition(CopyRends[ix], Easing.InSine(timer, 0, -1, duration));
         }
-        Audio.PlaySoundAtTransform("reel set", ImageRends[ix].transform);
+
+        if (IdIsOne || isActivated)
+            Audio.PlaySoundAtTransform("reel set", ImageRends[ix].transform);
+
         SetImagePosition(ImageRends[ix], 0);
         Destroy(CopyRends[ix].gameObject);
+
+        if (allDigitsSet[ix])
+            yield break;
+
+        allDigitsSet[ix] = true;
+
     }
 
     private void SetImagePosition(Image rend, float height)
