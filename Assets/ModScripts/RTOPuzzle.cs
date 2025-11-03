@@ -349,7 +349,7 @@ public class RTOPuzzle
                     usedStations[1].CombinedDigits() > usedStations[0].CombinedDigits(),
                     usedStations[1].Digits[1] > usedStations[0].Digits[1],
                     usedStations[1].Digits[2] + usedStations[1].Digits[0] > 9,
-                    Math.Abs(usedStations[1].Digits[0] - usedStations[1].Digits[1]) < Math.Abs(usedStations[0].Digits[0] - usedStations[1].Digits[1]),
+                    Math.Abs(usedStations[1].Digits[0] - usedStations[1].Digits[1]) < Math.Abs(usedStations[0].Digits[0] - usedStations[0].Digits[1]),
                     usedStations[1].Digits[2] <= usedStations[0].Digits[2]
                 };
                 break;
