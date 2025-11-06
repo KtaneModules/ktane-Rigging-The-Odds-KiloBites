@@ -282,6 +282,8 @@ public class RTOPuzzle
                     break;
                 }
 
+                usedStations.Add(_allStations[hexGridIxes[currentPosition].Value]);
+
                 _module.LogPuzzle($"After moving, the next station is: {_allStations[hexGridIxes[currentPosition].Value]}");
 
                 startingPosition = currentPosition;
